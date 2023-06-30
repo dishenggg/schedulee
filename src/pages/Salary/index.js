@@ -1,5 +1,4 @@
 import React from "react";
-import { useRef } from "react";
 import { db } from "../../firebase.js";
 import { doc, getDoc } from "firebase/firestore";
 const docRef = doc(db, "test_data", "eXzhx4lKoZYBo7C2Wq9g");
@@ -15,6 +14,7 @@ const Salary = () => {
   return (
     <div>
       <h1>Salary Page</h1>
+      List of driver's salary + breakdown of salary
     </div>
   );
 };

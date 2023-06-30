@@ -14,6 +14,9 @@ const Navbar = () => {
         <li>
           <Link to="/bus-details">Bus Details</Link>
         </li>
+        <li>
+          <Link to="/driver-details">Driver Details</Link>
+        </li>
       </ul>
     </nav>
   );
