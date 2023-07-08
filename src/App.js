@@ -1,6 +1,7 @@
 //import React from "react";
 import "./assets/index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {ConfigProvider, theme} from 'antd'
 import Navbar from "./components/NavBar/NavBar";
 import HideNavBarInLogin from "./components/NavBar/HideNavBarInLogin";
 import PrivateRoutes from "./utils/PrivateRoutes";
@@ -10,8 +11,10 @@ import BusDetails from ".//pages/BusDetails/";
 import DriverDetails from ".//pages/DriverDetails/";
 import Login from ".//pages/Login/";
 
+
 function App() {
   return (
+    <ConfigProvider theme={{algorithm:theme.defaultAlgorithm}}>
     <BrowserRouter>
       <HideNavBarInLogin>
         <Navbar />
@@ -28,6 +31,7 @@ function App() {
         <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
+    </ConfigProvider>
   );
 }
 
