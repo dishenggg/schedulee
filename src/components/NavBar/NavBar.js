@@ -12,9 +12,33 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 
+const menuItems = [
+  {
+    label: (<Link to="/salary">Salary</Link>),
+    key: 'salary',
+    icon:<DollarOutlined />,
+  },
+  {
+    label: (<Link to="/scheduling">Schedule</Link>),
+    key: 'schedule',
+    icon:<CalendarOutlined />,
+  },
+  {
+    label: (<Link to="/bus-details">Bus Details</Link>),
+    key: 'bus',
+    icon:<CarOutlined />,
+  },
+  {
+    label: (<Link to="/driver-details">Driver Details</Link>),
+    key: 'Driver',
+    icon:<IdcardOutlined />,
+  },
+
+]
 const Navbar = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState('salary');
+
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
