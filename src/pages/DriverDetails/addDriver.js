@@ -1,34 +1,16 @@
 import { db } from '../../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { Button, Modal } from 'antd';
+import { Button, Modal, Form, Input, InputNumber, Radio } from 'antd';
 
-function AddDriver(props) {
+const AddDriver = () => {
   const [openModal, setOpenModal] = useState(false);
-  const [confirmSubmit, setCofirmSubmit] = useState(false);
-  const showModal = () => {
-    setOpenModal(true);
-  };
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [form] = Form.useForm();
 
-
-  const handleCancel = () => {
-    setOpenModal(false);
-  };
-
-  const initialValues = {
-    busNumber: '',
-    contactNumber: '',
-    icNumber: '',
-    local: '',
-    minSalary: '',
-    name: '',
-    normalSalary: '',
-    peakHourSalary: '',
-  };
-
-  const handleSubmit = async (values, { resetForm }) => {
+  const onCreate = async (values) => {
     try {
+      console.log(values);
       const busNumber = values.busNumber.toUpperCase();
       const driverRef = doc(db, 'Bus Drivers', busNumber);
       const driverSnapshot = await getDoc(driverRef);
@@ -41,11 +23,11 @@ function AddDriver(props) {
           busNumber, // Update the busNumber value to the capitalized version
           local: values.local === '1',
         };
-
+        setConfirmLoading(true);
         await setDoc(driverRef, updatedValues);
         alert('Driver added successfully!');
-
-        resetForm(); // Reset the form fields
+        setOpenModal(false);
+        setConfirmLoading(false);
         window.location.reload(); // Refresh the page
       }
     } catch (error) {
@@ -54,118 +36,142 @@ function AddDriver(props) {
     }
   };
 
-  const validateForm = (values) => {
-    const errors = {};
-
-    if (!values.busNumber) {
-      errors.busNumber = 'Bus Number is required';
-    }
-
-    if (!values.contactNumber) {
-      errors.contactNumber = 'Contact Number is required';
-    } else if (!/^\d{8}$/.test(values.contactNumber)) {
-      errors.contactNumber = 'Contact Number must be 8 digits';
-    }
-
-    if (!values.icNumber) {
-      errors.icNumber = 'IC Number is required';
-    }
-
-    if (!values.local) {
-      errors.local = 'Local is required';
-    }
-
-    if (!values.minSalary) {
-      errors.minSalary = 'Minimum Salary is required';
-    } else if (isNaN(parseFloat(values.minSalary))) {
-      errors.minSalary = 'Minimum Salary must be a valid number';
-    }
-
-    if (!values.normalSalary) {
-      errors.normalSalary = 'Normal Salary is required';
-    } else if (isNaN(parseFloat(values.normalSalary))) {
-      errors.normalSalary = 'Normal Salary must be a valid number';
-    }
-
-    if (!values.peakHourSalary) {
-      errors.peakHourSalary = 'Peak Hour Salary is required';
-    } else if (isNaN(parseFloat(values.peakHourSalary))) {
-      errors.peakHourSalary = 'Peak Hour Salary must be a valid number';
-    }
-
-    return errors;
-  };
-
   return (
-    <>
-      <Button type="primary" onClick={showModal}>
+    <div>
+      <Button
+        type="primary"
+        onClick={() => {
+          setOpenModal(true);
+        }}
+      >
         Add Driver
       </Button>
-      <Modal title="Add A Driver" open={openModal} onCancel={handleCancel}>
-        <Formik initialValues={initialValues} onSubmit={handleSubmit} validate={validateForm}>
-          <Form>
-            <div className="input-container">
-              <div className="form-control">
-                <label htmlFor="busNumber">Bus Number</label>
-                <Field type="text" id="busNumber" name="busNumber" />
-                <ErrorMessage name="busNumber" component="div" className="error-message" />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="contactNumber">Contact Number</label>
-                <Field type="tel" id="contactNumber" name="contactNumber" />
-                <ErrorMessage name="contactNumber" component="div" className="error-message" />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="icNumber">IC Number</label>
-                <Field type="text" id="icNumber" name="icNumber" />
-                <ErrorMessage name="icNumber" component="div" className="error-message" />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="local">Local</label>
-                <Field component="select" id="local" name="local">
-                  <option value="">Select</option>
-                  <option value="1">True</option>
-                  <option value="0">False</option>
-                </Field>
-                <ErrorMessage name="local" component="div" className="error-message" />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="minSalary">Minimum Salary</label>
-                <Field type="number" id="minSalary" name="minSalary" />
-                <ErrorMessage name="minSalary" component="div" className="error-message" />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="name">Name</label>
-                <Field type="text" id="name" name="name" />
-                <ErrorMessage name="name" component="div" className="error-message" />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="normalSalary">Normal Salary</label>
-                <Field type="number" id="normalSalary" name="normalSalary" step="0.01" />
-                <ErrorMessage name="normalSalary" component="div" className="error-message" />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="peakHourSalary">Peak Hour Salary</label>
-                <Field type="number" id="peakHourSalary" name="peakHourSalary" step="0.01" />
-                <ErrorMessage name="peakHourSalary" component="div" className="error-message" />
-              </div>
-            </div>
-
-            <div className="btn-container">
-              <button type="submit">Add Driver</button>
-            </div>
-          </Form>
-        </Formik>
+      <Modal
+        open={openModal}
+        title="Add A Driver"
+        okText="Submit"
+        cancelText="Cancel"
+        onCancel={() => {
+          setOpenModal(false);
+        }}
+        confirmLoading={confirmLoading}
+        onOk={() => {
+          form
+            .validateFields()
+            .then((values) => {
+              form.resetFields();
+              onCreate(values);
+            })
+            .catch((info) => {
+              console.log('Validation Error:', info);
+            });
+        }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          name="driver form"
+          initialValues={{
+            togglelocal: 'local',
+          }}
+        >
+          <Form.Item
+            name="busNumber"
+            label="Bus Number"
+            rules={[
+              {
+                required: true,
+                message: "'${name}' Required",
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="icNumber"
+            label="NRIC (Last 4 Characters)"
+            rules={[
+              {
+                required: true,
+              },
+              {
+                pattern: /^\d{3}[A-Z]$/,
+                message: 'Correct Format: 123C',
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="contactNumber"
+            label="Contact No."
+            rules={[
+              {
+                required: true,
+              },
+              {
+                pattern: /^[689]\d{7}$/,
+                message: "Check '${label}' Format",
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="minSalary"
+            label="Minimum Salary"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <InputNumber min={1} step={0.01} />
+          </Form.Item>
+          <Form.Item
+            name="normalSalary"
+            label="Normal Salary"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <InputNumber min={1} step={0.01} />
+          </Form.Item>
+          <Form.Item
+            name="peakHourSalary"
+            label="Peak Hour Salary"
+            rules={[
+              {
+                required: true,
+                message: "'${label}' Required",
+              },
+            ]}
+          >
+            <InputNumber min={1} step={0.01} />
+          </Form.Item>
+          <Form.Item name="local">
+            <Radio.Group>
+              <Radio value="1">Local</Radio>
+              <Radio value="0">Non-Local</Radio>
+            </Radio.Group>
+          </Form.Item>
+        </Form>
       </Modal>
-    </>
+    </div>
   );
-}
+};
 
 export default AddDriver;

@@ -1,5 +1,4 @@
 import React from "react";
-import {Title} from "../../components/Typography/Title"
 import { useNavigate } from 'react-router-dom';
 import {Button, Result} from 'antd'
 
