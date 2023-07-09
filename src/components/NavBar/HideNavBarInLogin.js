@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { auth } from "../../firebase";
 
 const HideNavBarInLogin = ({ children }) => {
   const location = useLocation();
@@ -7,7 +8,7 @@ const HideNavBarInLogin = ({ children }) => {
   const [showNavBar, setShowNavBar] = useState(false);
 
   useEffect(() => {
-    if (location.pathname === "/login") {
+    if (location.pathname === "/login" || !auth.currentUser) {
       setShowNavBar(false);
     } else {
       setShowNavBar(true);
