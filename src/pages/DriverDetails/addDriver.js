@@ -72,7 +72,7 @@ const AddDriver = () => {
           layout="vertical"
           name="driver form"
           initialValues={{
-            togglelocal: 'local',
+            local: '1',
           }}
         >
           <Form.Item
