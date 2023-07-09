@@ -15,7 +15,7 @@ const AddMultipleDrivers = () => {
     },
     onChange(info) {
         if (info.file.status !== 'uploading') {
-           let reader = new FileReader();
+           const reader = new FileReader();
             reader.onload = (e) => {
                console.log(e.target.result);
             }
