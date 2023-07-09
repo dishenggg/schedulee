@@ -1,24 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+//import React from "react";
+import "./assets/index.css";
+import { BrowserRouter, Routes, Route} from "react-router-dom";
+import {ConfigProvider, theme} from 'antd'
+import Navbar from "./components/NavBar/NavBar";
+import HideNavBarInLogin from "./components/NavBar/HideNavBarInLogin";
+import PrivateRoutes from "./utils/PrivateRoutes";
+import Salary from ".//pages/Salary/";
+import Scheduling from ".//pages/Scheduling/";
+import BusDetails from ".//pages/BusDetails/";
+import DriverDetails from ".//pages/DriverDetails/";
+import Login from ".//pages/Login/";
+import NotFound from "./pages/NotFound";
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn what
-        </a>
-      </header>
-    </div>
+    <ConfigProvider theme={{algorithm:theme.defaultAlgorithm}}>
+    <BrowserRouter>
+      <HideNavBarInLogin>
+        <Navbar />
+      </HideNavBarInLogin>
+
+      <Routes>
+        <Route element={<PrivateRoutes />}>
+          <Route exact path="/" element={<Scheduling />} />
+          <Route path="/salary" element={<Salary />} />
+          <Route path="/scheduling" element={<Scheduling />} />
+          <Route path="/bus-details" element={<BusDetails />} />
+          <Route path="/driver-details" element={<DriverDetails />} />
+        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+    </ConfigProvider>
   );
 }
 
