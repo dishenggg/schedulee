@@ -14,7 +14,9 @@ import NotFound from './pages/NotFound';
 import { useState } from 'react';
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem('darkMode') === 'true' || localStorage.getItem('darkMode') !== 'false'
+  );
   return (
     <div
       style={{
@@ -52,7 +54,10 @@ function App() {
           checked={darkMode}
           checkedChildren="Dark Mode"
           unCheckedChildren="Light Mode"
-          onChange={() => setDarkMode(!darkMode)}
+          onChange={() => {
+            localStorage.setItem('darkMode', !darkMode);
+            setDarkMode(!darkMode);
+          }}
         ></Switch>
       </ConfigProvider>
     </div>
