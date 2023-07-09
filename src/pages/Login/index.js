@@ -25,7 +25,6 @@ const Login = () => {
 
   useEffect(() => {
     if (auth.currentUser) {
-      console.log(auth.currentUser)
       navigate("/");
     }
   }, []);
