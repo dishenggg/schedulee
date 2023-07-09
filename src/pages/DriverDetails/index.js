@@ -9,9 +9,9 @@ const DriverDetails = () => {
   return (
     <>
       <Title>Drivers </Title>
-      <DriverList />
-      <h2>Create Driver</h2>
       <AddDriver />
+      <DriverList />
+      
     </>
   );
 };
