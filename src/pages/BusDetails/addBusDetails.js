@@ -1,18 +1,18 @@
 import { Firestore } from "firebase/firestore";
-import React, { useRef } from "react";
+import React, { useState } from 'react';
 import { db } from "../../firebase.js";
 import { addDoc, collection } from "firebase/firestore";
 import "../../assets/BusDetails.css";
+import { Input } from "antd"
 
 const AddBusDetails = () => {
-  const busNoRef = useRef();
+  const { Search } = Input
   const ref = collection(db, "test_data");
-
-  const handleAddBusDetails = (e) => {
-    e.preventDefault();
-
-    let data = {
-      busNo: busNoRef.current.value,
+  const [searchValue, setSearchValue] = useState('')
+  const handleSearch = (value) => {
+    console.log(value)
+    const data = {
+      busNo: value,
     };
 
     try {
@@ -20,14 +20,21 @@ const AddBusDetails = () => {
     } catch (e) {
       console.log(e);
     }
+    setSearchValue('')
   };
   return (
     <div>
-      <form onSubmit={handleAddBusDetails}>
-        <label>Enter License Plate Number</label>
-        <input type="text" ref={busNoRef} />
-        <button type="submit">Submit</button>
-      </form>
+    <Search
+      placeholder="Enter License Number"
+      allowClear
+      size="large"
+      value={searchValue}
+      onSearch={handleSearch}
+      style={{
+        width: "33vw",
+      }}
+      onChange={(e) => setSearchValue(e.target.value)}
+    />
     </div>
   );
 };

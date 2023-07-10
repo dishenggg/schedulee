@@ -3,7 +3,6 @@ import { auth } from "../firebase";
 
 const PrivateRoutes = () => {
   let user = auth.currentUser;
-  console.log(user);
   return user ? <Outlet /> : <Navigate to="/login" />;
 };
 

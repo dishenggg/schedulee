@@ -1,12 +1,12 @@
 import React from "react";
 import "../../assets/BusDetails.css";
 import AddBusDetails from "./addBusDetails";
+import { Title } from "../../components/Typography/Title";
 
 const BusDetails = () => {
   return (
     <>
-      <h1>Bus Details Page</h1>
-      Page to view Past/Current/Future trips
+      <Title level={3}>Page to view Past/Current/Future trips </Title>
       <AddBusDetails />
     </>
   );
