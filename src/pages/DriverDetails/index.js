@@ -11,7 +11,7 @@ const DriverDetails = () => {
   return (
     <>
       <Title>Drivers </Title>
-      <Space>
+      <Space style={{marginBottom:"0.5rem"}}>
         <AddDriver />
         <AddMultipleDrivers />
       </Space>
