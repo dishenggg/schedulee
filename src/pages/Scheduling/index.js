@@ -15,9 +15,8 @@ const Scheduling = () => {
 
   return (
     <>
-    <SchedulingApp />
       <h1>Scheduling Page</h1>
-      <h2>Trip Type</h2>
+      <SchedulingApp />
       <div>
         <select
           onChange={(e) => setMyValue(parseInt(e.target.value))}

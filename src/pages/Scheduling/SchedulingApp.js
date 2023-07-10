@@ -1,230 +1,130 @@
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import React, { useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { db } from "../../firebase";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  query,
+  where,
+} from "firebase/firestore";
 
-function SchedulingApp() {
-  const baseDefaultColDef = {
-    width: 80,
-    sortable: true,
-    filter: true,
-    resizable: true,
+export default function SchedulingApp() {
+  const [listOfDrivers, setListOfDrivers] = useState([]);
+  const [listOfTrips, setListOfTrips] = useState([]);
+  const [unscheduledTrips, setUnscheduledTrips] = useState([]);
+
+  const fetchDrivers = async () => {
+    const querySnapshot = await getDocs(collection(db, "Bus Drivers"));
+    const drivers = [];
+    querySnapshot.forEach((doc) => {
+      drivers.push(doc.id);
+    });
+    setListOfDrivers(drivers); // Update the state with the fetched drivers
   };
 
-  const baseGridOptions = {
-    getRowId: (params) => {
-      return params.data.id;
-    },
-    rowClassRules: {
-      "red-row": 'data.color == "Red"',
-      "green-row": 'data.color == "Green"',
-      "blue-row": 'data.color == "Blue"',
-    },
-    rowDragManaged: true,
-    animateRows: true,
+  const fetchTrips = async () => {
+    const scheduledTrips = query(
+      collection(db, "Trips"),
+      where("bus", "==", "")
+    );
+    const querySnapshot = await getDocs(scheduledTrips);
+    const trips = [];
+    querySnapshot.forEach((doc) => {
+      trips.push({ id: doc.id, ...doc.data() });
+    });
+    setUnscheduledTrips(trips); // Update the state with the fetched unscheduled trips
   };
 
-  const baseColumnDefs = [
-    { field: "id", dndSource: true, width: 90 },
-    { field: "color" },
-    { field: "value1" },
-    { field: "value2" },
-  ];
-
-  const leftGridOptions = {
-    ...baseGridOptions,
-    columnDefs: [...baseColumnDefs],
-    defaultColDef: {
-      ...baseDefaultColDef,
-    },
+  const fetchDriverTrips = async (driverId) => {
+    const driverTrips = query(
+      collection(db, "Trips"),
+      where("bus", "==", driverId)
+    );
+    const querySnapshot = await getDocs(driverTrips);
+    const trips = [];
+    querySnapshot.forEach((doc) => {
+      trips.push({ id: doc.id, ...doc.data() });
+    });
+    setListOfTrips((prevTrips) => [...prevTrips, { driverId, trips }]); // Update the state with the fetched driver trips
   };
 
-  const rightGridOptions = {
-    ...baseGridOptions,
-    columnDefs: [...baseColumnDefs],
-    defaultColDef: {
-      ...baseDefaultColDef,
-    },
-  };
+  useEffect(() => {
+    fetchDrivers();
+    fetchTrips();
+  }, []);
 
-  let nextRowId = 100;
+  useEffect(() => {
+    listOfDrivers.forEach((driverId) => {
+      fetchDriverTrips(driverId);
+    });
+  }, [listOfDrivers]);
 
-  const GridExample = () => {
-    const leftGridRef = useRef(null);
-    const rightGridRef = useRef(null);
+  console.log(listOfTrips);
 
-    const onLeftGridReady = (params) => {
-      params.api.setRowData(createLeftRowData());
-    };
-
-    const onRightGridReady = (params) => {
-      params.api.setRowData([]);
-    };
-
-    const createLeftRowData = () =>
-      ["Red", "Green", "Blue"].map(createDataItem);
-
-    const createDataItem = (color) => {
-      let newDataItem = {
-        id: nextRowId++,
-        color: color,
-        value1: Math.floor(Math.random() * 100),
-        value2: Math.floor(Math.random() * 100),
-      };
-
-      return newDataItem;
-    };
-
-    const binDragOver = (event) => {
-      const dragSupported =
-        event.dataTransfer.types.indexOf("application/json") >= 0;
-      if (dragSupported) {
-        event.dataTransfer.dropEffect = "move";
-        event.preventDefault();
-      }
-    };
-
-    const binDrop = (event) => {
-      event.preventDefault();
-      const jsonData = event.dataTransfer.getData("application/json");
-      const data = JSON.parse(jsonData);
-
-      // if data missing or data has no id, do nothing
-      if (!data || data.id == null) {
-        return;
-      }
-
-      const transaction = {
-        remove: [data],
-      };
-
-      const rowIsInLeftGrid = !!leftGridRef.current.api.getRowNode(data.id);
-      if (rowIsInLeftGrid) {
-        leftGridRef.current.api.applyTransaction(transaction);
-      }
-
-      const rowIsInRightGrid = !!rightGridRef.current.api.getRowNode(data.id);
-      if (rowIsInRightGrid) {
-        rightGridRef.current.api.applyTransaction(transaction);
-      }
-    };
-
-    const dragStart = (color, event) => {
-      const newItem = createDataItem(color);
-      const jsonData = JSON.stringify(newItem);
-
-      event.dataTransfer.setData("application/json", jsonData);
-    };
-
-    const gridDragOver = (event) => {
-      const dragSupported = event.dataTransfer.types.length;
-
-      if (dragSupported) {
-        event.dataTransfer.dropEffect = "copy";
-        event.preventDefault();
-      }
-    };
-
-    const gridDrop = (grid, event) => {
-      event.preventDefault();
-
-      const jsonData = event.dataTransfer.getData("application/json");
-      const data = JSON.parse(jsonData);
-
-      // if data missing or data has no it, do nothing
-      if (!data || data.id == null) {
-        return;
-      }
-
-      const gridApi =
-        grid === "left" ? leftGridRef.current.api : rightGridRef.current.api;
-
-      // do nothing if row is already in the grid, otherwise we would have duplicates
-      const rowAlreadyInGrid = !!gridApi.getRowNode(data.id);
-      if (rowAlreadyInGrid) {
-        console.log("not adding row to avoid duplicates in the grid");
-        return;
-      }
-
-      const transaction = {
-        add: [data],
-      };
-      gridApi.applyTransaction(transaction);
-    };
-
-    return (
-      <div className="outer">
+  return (
+    <div
+      className="driver-tables-container"
+      style={{ display: "flex", flexWrap: "wrap" }}
+    >
+      <div
+        className="driver-table"
+        style={{ width: "33%", marginBottom: "20px" }}
+      >
+        <h3>Unscheduled Trips</h3>
         <div
-          style={{ height: "100%" }}
-          className="inner-col ag-theme-alpine"
-          onDragOver={gridDragOver}
-          onDrop={(e) => gridDrop("left", e)}
+          className="ag-theme-alpine"
+          style={{ height: "400px", width: "100%" }}
         >
           <AgGridReact
-            ref={leftGridRef}
-            gridOptions={leftGridOptions}
-            onGridReady={onLeftGridReady}
-          />
-        </div>
-
-        <div className="inner-col factory-panel">
-          <span
-            id="eBin"
-            onDragOver={binDragOver}
-            onDrop={binDrop}
-            className="factory factory-bin"
-          >
-            <i className="far fa-trash-alt">
-              <span className="filename"> Trash - </span>
-            </i>
-            Drop target to destroy row
-          </span>
-          <span
-            draggable="true"
-            onDragStart={(e) => dragStart("Red", e)}
-            className="factory factory-red"
-          >
-            <i className="far fa-plus-square">
-              <span className="filename"> Create - </span>
-            </i>
-            Drag source for new red item
-          </span>
-          <span
-            draggable="true"
-            onDragStart={(e) => dragStart("Green", e)}
-            className="factory factory-green"
-          >
-            <i className="far fa-plus-square">
-              <span className="filename"> Create - </span>
-            </i>
-            Drag source for new green item
-          </span>
-          <span
-            draggable="true"
-            onDragStart={(e) => dragStart("Blue", e)}
-            className="factory factory-blue"
-          >
-            <i className="far fa-plus-square">
-              <span className="filename"> Create - </span>
-            </i>
-            Drag source for new blue item
-          </span>
-        </div>
-
-        <div
-          style={{ height: "100%" }}
-          className="inner-col ag-theme-alpine"
-          onDragOver={gridDragOver}
-          onDrop={(e) => gridDrop("right", e)}
-        >
-          <AgGridReact
-            ref={rightGridRef}
-            gridOptions={rightGridOptions}
-            onGridReady={onRightGridReady}
+            columnDefs={[
+              { headerName: "Trip ID", field: "id" },
+              { headerName: "Description", field: "description" },
+            ]}
+            rowData={unscheduledTrips}
+            suppressHorizontalScroll={true}
           />
         </div>
       </div>
-    );
-  };
+
+      {listOfDrivers.map((driverId) => {
+        const driverTripData = listOfTrips.find(
+          (tripData) => tripData.driverId === driverId
+        );
+        if (!driverTripData) {
+          return null;
+        }
+
+        const driverTrips = driverTripData.trips;
+        console.log(driverTrips);
+
+        return (
+          <div
+            className="driver-table"
+            key={driverId}
+            style={{ width: "33%", marginBottom: "20px" }}
+          >
+            <h3>{driverId}</h3>
+            <div
+              className="ag-theme-alpine"
+              style={{ height: "400px", width: "100%" }}
+            >
+              <AgGridReact
+                columnDefs={[
+                  { headerName: "Trip ID", field: "id" },
+                  { headerName: "Description", field: "description" },
+                ]}
+                rowData={driverTrips}
+                suppressHorizontalScroll={true}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
-export default SchedulingApp;
