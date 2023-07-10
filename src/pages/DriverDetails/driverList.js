@@ -14,7 +14,6 @@ import { Button, Popconfirm, message } from "antd";
 
 function DriverList() {
   const [drivers, setDrivers] = useState([]);
-
   const defaultColDef = useMemo(() => {
     return {
       editable: true,
@@ -171,7 +170,7 @@ function DriverList() {
   ];
 
   return (
-    <div className="ag-theme-alpine" style={{ height: "400px", width: "100%" }}>
+    <div className={localStorage.getItem('darkMode') === 'true' ? "ag-theme-alpine-dark" : "ag-theme-alpine"} style={{ height: "400px", width: "100%" }}>
       <AgGridReact
         rowData={drivers}
         columnDefs={columnDefs}
