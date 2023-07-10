@@ -7,26 +7,26 @@ const AddMultipleDrivers = () => {
   const { Dragger } = Upload;
   const props = {
     name: 'file',
-    accept:".txt, .csv",
+    accept: '.txt, .csv',
     action: 'https://run.mocky.io/v3/10e28101-2173-486f-a1e1-8d4036e11ff8', //JUST A MOCK ENDPOINT TO POST TO
     headers: {
-        'Content-Type': 'text/plain',
-        'Access-Control-Allow-Origin': 'https//run.mocky.io'
+      'Content-Type': 'text/plain',
+      'Access-Control-Allow-Origin': 'https//run.mocky.io',
     },
     onChange(info) {
-        if (info.file.status !== 'uploading') {
-           const reader = new FileReader();
-            reader.onload = (e) => {
-               console.log(e.target.result);
-            }
-            reader.readAsText(info.file.originFileObj);
-        }
-        if (info.file.status === 'done') {
-          message.success(`${info.file.name} file uploaded successfully`);
-        } else if (info.file.status === 'error') {
-          message.error(`${info.file.name} file upload failed.`);
-        }
-      },
+      if (info.file.status !== 'uploading') {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          console.log(e.target.result);
+        };
+        reader.readAsText(info.file.originFileObj);
+      }
+      if (info.file.status === 'done') {
+        message.success(`${info.file.name} file uploaded successfully`);
+      } else if (info.file.status === 'error') {
+        message.error(`${info.file.name} file upload failed.`);
+      }
+    },
     onDrop(e) {
       console.log('Dropped files', e.dataTransfer.files);
     },
@@ -49,6 +49,7 @@ const AddMultipleDrivers = () => {
         onCancel={() => {
           setOpenModal(false);
         }}
+        //onOk={() => {}} trigger csv processing
       >
         <Dragger {...props}>
           <p>
