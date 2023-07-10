@@ -1,79 +1,74 @@
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { db } from "../../firebase";
-import {
-  collection,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs, where, query } from "firebase/firestore";
 
-export default function SchedulingApp() {
+export default function SchedulingApp({ selectedDate }) {
   const [listOfDrivers, setListOfDrivers] = useState([]);
   const [listOfTrips, setListOfTrips] = useState([]);
   const [unscheduledTrips, setUnscheduledTrips] = useState([]);
 
   const fetchDrivers = async () => {
     const querySnapshot = await getDocs(collection(db, "Bus Drivers"));
-    const drivers = [];
-    querySnapshot.forEach((doc) => {
-      drivers.push(doc.id);
-    });
-    setListOfDrivers(drivers); // Update the state with the fetched drivers
+    const drivers = querySnapshot.docs.map((doc) => doc.id);
+    setListOfDrivers(drivers);
   };
 
-  const fetchTrips = async () => {
-    const scheduledTrips = query(
-      collection(db, "Trips"),
-      where("bus", "==", "")
-    );
-    const querySnapshot = await getDocs(scheduledTrips);
-    const trips = [];
-    querySnapshot.forEach((doc) => {
-      trips.push({ id: doc.id, ...doc.data() });
-    });
-    setUnscheduledTrips(trips); // Update the state with the fetched unscheduled trips
+  const fetchTrips = async (driverId = null) => {
+    const tripsCollectionRef = collection(db, "Dates", selectedDate, "trips");
+    let querySnapshot;
+
+    if (driverId) {
+      const driverTrips = query(
+        tripsCollectionRef,
+        where("bus", "==", driverId)
+      );
+      querySnapshot = await getDocs(driverTrips);
+    } else {
+      querySnapshot = await getDocs(tripsCollectionRef);
+    }
+
+    const trips = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    if (driverId) {
+      setListOfTrips((prevTrips) => [
+        ...prevTrips.filter((trip) => trip.driverId !== driverId),
+        { driverId, trips },
+      ]);
+    } else {
+      setUnscheduledTrips(trips.filter((trip) => trip.bus === ""));
+      setListOfTrips([]);
+    }
   };
 
   const fetchDriverTrips = async (driverId) => {
-    const driverTrips = query(
-      collection(db, "Trips"),
-      where("bus", "==", driverId)
-    );
-    const querySnapshot = await getDocs(driverTrips);
-    const trips = [];
-    querySnapshot.forEach((doc) => {
-      trips.push({ id: doc.id, ...doc.data() });
-    });
-    setListOfTrips((prevTrips) => [...prevTrips, { driverId, trips }]); // Update the state with the fetched driver trips
+    await fetchTrips(driverId);
   };
 
   useEffect(() => {
     fetchDrivers();
-    fetchTrips();
   }, []);
 
   useEffect(() => {
+    fetchTrips(); // Fetch unscheduled trips
     listOfDrivers.forEach((driverId) => {
       fetchDriverTrips(driverId);
     });
-  }, [listOfDrivers]);
-
-  console.log(listOfTrips);
+  }, [selectedDate, listOfDrivers]);
 
   return (
     <div
       className="driver-tables-container"
-      style={{ display: "flex", flexWrap: "wrap" }}
+      style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}
     >
       <div
         className="driver-table"
-        style={{ width: "33%", marginBottom: "20px" }}
+        style={{ width: "25%", marginBottom: "20px", marginRight: "15px" }}
       >
         <h3>Unscheduled Trips</h3>
         <div
@@ -82,7 +77,7 @@ export default function SchedulingApp() {
         >
           <AgGridReact
             columnDefs={[
-              { headerName: "Trip ID", field: "id" },
+              { headerName: "Time", field: "time" },
               { headerName: "Description", field: "description" },
             ]}
             rowData={unscheduledTrips}
@@ -100,13 +95,15 @@ export default function SchedulingApp() {
         }
 
         const driverTrips = driverTripData.trips;
-        console.log(driverTrips);
+        const scheduledDriverTrips = driverTrips.filter(
+          (trip) => trip.bus === driverId
+        );
 
         return (
           <div
             className="driver-table"
             key={driverId}
-            style={{ width: "33%", marginBottom: "20px" }}
+            style={{ width: "25%", marginBottom: "20px", marginRight: "15px" }}
           >
             <h3>{driverId}</h3>
             <div
@@ -115,10 +112,10 @@ export default function SchedulingApp() {
             >
               <AgGridReact
                 columnDefs={[
-                  { headerName: "Trip ID", field: "id" },
+                  { headerName: "Time", field: "time" },
                   { headerName: "Description", field: "description" },
                 ]}
-                rowData={driverTrips}
+                rowData={scheduledDriverTrips}
                 suppressHorizontalScroll={true}
               />
             </div>
