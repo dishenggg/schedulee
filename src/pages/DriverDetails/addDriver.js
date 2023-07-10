@@ -1,7 +1,7 @@
-import { db } from '../../firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import React, { useState } from 'react';
-import { Button, Modal, Form, Input, InputNumber, Radio } from 'antd';
+import { db } from "../../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import React, { useState } from "react";
+import { Button, Modal, Form, Input, InputNumber, Radio, message } from "antd";
 
 const AddDriver = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -12,27 +12,29 @@ const AddDriver = () => {
     try {
       console.log(values);
       const busNumber = values.busNumber.toUpperCase();
-      const driverRef = doc(db, 'Bus Drivers', busNumber);
+      const driverRef = doc(db, "Bus Drivers", busNumber);
       const driverSnapshot = await getDoc(driverRef);
 
       if (driverSnapshot.exists()) {
-        alert('Bus Number already exists. Please choose a different Bus Number.');
+        message.error(
+          "Bus Number already exists. Please choose a different Bus Number."
+        );
       } else {
         const updatedValues = {
           ...values,
           busNumber, // Update the busNumber value to the capitalized version
-          local: values.local === '1',
+          local: values.local === "1",
         };
         setConfirmLoading(true);
         await setDoc(driverRef, updatedValues);
-        alert('Driver added successfully!');
+        message.success("Driver added successfully!");
         setOpenModal(false);
         setConfirmLoading(false);
         window.location.reload(); // Refresh the page
       }
     } catch (error) {
       console.log(error);
-      alert(error);
+      message.error(error);
     }
   };
 
@@ -63,7 +65,7 @@ const AddDriver = () => {
               onCreate(values);
             })
             .catch((info) => {
-              console.log('Validation Error:', info);
+              console.log("Validation Error:", info);
             });
         }}
       >
@@ -72,7 +74,7 @@ const AddDriver = () => {
           layout="vertical"
           name="driver form"
           initialValues={{
-            local: '1',
+            local: "1",
           }}
         >
           <Form.Item
@@ -81,7 +83,7 @@ const AddDriver = () => {
             rules={[
               {
                 required: true,
-                message: "'${name}' Required",
+                message: "'${label}' Required",
               },
             ]}
           >
@@ -107,7 +109,7 @@ const AddDriver = () => {
               },
               {
                 pattern: /^\d{3}[A-Z]$/,
-                message: 'Correct Format: 123C',
+                message: "Correct Format: 123C",
               },
             ]}
           >
