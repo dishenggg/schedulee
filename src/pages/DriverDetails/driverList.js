@@ -10,6 +10,7 @@ import {
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import { Button, Popconfirm, message } from "antd";
 
 function DriverList() {
   const [drivers, setDrivers] = useState([]);
@@ -44,25 +45,30 @@ function DriverList() {
       handleDelete(rowData);
     };
 
-    return <button onClick={handleClick}>Delete</button>;
+    return (
+      <Popconfirm
+        title="Delete Driver"
+        description="Confirm Delete Driver?"
+        onConfirm={handleClick}
+      >
+        <Button danger size="small">
+          Delete
+        </Button>
+      </Popconfirm>
+    );
   };
 
   const handleDelete = (data) => {
     console.log(data);
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete " + data.id + "?"
-    );
-    if (confirmDelete) {
-      deleteDoc(doc(db, "Bus Drivers", data.id))
-        .then(() => {
-          alert(data.id + "deleted successfully!");
-          fetchDrivers();
-        })
-        .catch((error) => {
-          console.log(error);
-          alert("Failed to delete driver.");
-        });
-    }
+    deleteDoc(doc(db, "Bus Drivers", data.id))
+      .then(() => {
+        message.success(data.id + " deleted successfully!");
+        fetchDrivers();
+      })
+      .catch((error) => {
+        console.log(error);
+        message.error("Failed to delete driver.");
+      });
   };
 
   const validateRow = (row) => {
@@ -95,11 +101,11 @@ function DriverList() {
       if (confirmUpdate) {
         updateDoc(doc(db, "Bus Drivers", id), updatedData).catch((error) => {
           console.log(error);
-          alert("Failed to update driver.");
+          message.error("Failed to update driver.");
         });
       }
     } catch (err) {
-      alert(err);
+      message.error(err);
     }
     fetchDrivers();
   };
