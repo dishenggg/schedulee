@@ -1,24 +1,11 @@
-import {
-  Formik,
-  Form,
-  Field,
-  ErrorMessage,
-  FieldArray,
-  useField,
-} from "formik";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { Form, Input, Button, DatePicker, TimePicker } from "antd";
+import React, { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-function OneWayForm() {
-  const initialValues = {
-    customerName: "",
-    description: "",
-    contactPersonName: "",
-    contactPersonPhoneNumber: "",
-    dates: [],
-    pickupPoint: "",
-    dropOffPoint: "",
-  };
+const OneWayForm = ({ setOpenModal }) => {
+  const [dates, setDates] = useState([
+    { id: uuidv4(), date: null, time: null },
+  ]); // Initialize with an empty date
 
   const handleSubmit = (values) => {
     // Perform validation and submit the form data
@@ -27,118 +14,150 @@ function OneWayForm() {
       values.description &&
       values.contactPersonName &&
       values.contactPersonPhoneNumber &&
-      values.dates.length > 0 &&
       values.pickupPoint &&
-      values.dropOffPoint
+      values.dropOffPoint &&
+      dates.length > 0 &&
+      dates.every((date) => date.date && date.time) // Check if every date has both date and time selected
     ) {
       const formData = {
         customerName: values.customerName,
         description: values.description,
         contactPersonName: values.contactPersonName,
         contactPersonPhoneNumber: values.contactPersonPhoneNumber,
-        dates: values.dates,
+        dates,
         pickupPoint: values.pickupPoint,
         dropOffPoint: values.dropOffPoint,
       };
       console.log("Form data:", formData);
       // Add your logic here to submit the form data to the backend or perform further actions
+      setOpenModal(false);
     } else {
-      alert("Please fill in all required fields.");
+      alert(
+        "Please fill in all required fields, including at least one date with both date and time."
+      );
     }
   };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log("Failed:", errorInfo);
+  };
+
+  const handleAddDate = () => {
+    const newDate = { id: uuidv4(), date: null, time: null }; // Generate a unique identifier for the date
+    setDates([...dates, newDate]); // Add a new date object with null date and time values
+  };
+
+  const handleRemoveDate = (id) => {
+    const updatedDates = dates.filter((date) => date.id !== id); // Filter out the date with the specified id
+    setDates(updatedDates);
+  };
+
+  const handleDateChange = (id, date) => {
+    const updatedDates = dates.map((dateObj) => {
+      if (dateObj.id === id) {
+        return { ...dateObj, date: date };
+      }
+      return dateObj;
+    });
+    setDates(updatedDates);
+  };
+
+  const handleTimeChange = (id, time) => {
+    const updatedDates = dates.map((dateObj) => {
+      if (dateObj.id === id) {
+        return { ...dateObj, time: time };
+      }
+      return dateObj;
+    });
+    setDates(updatedDates);
+  };
+
   return (
     <div>
       <h2>Form</h2>
-      <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-        {({ values, setFieldValue }) => (
-          <Form>
-            <div>
-              <label htmlFor="customerName">Customer Name:</label>
-              <Field
-                type="text"
-                id="customerName"
-                name="customerName"
-                required
+      <Form onFinish={handleSubmit} onFinishFailed={onFinishFailed}>
+        <Form.Item
+          label="Customer Name"
+          name="customerName"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Description"
+          name="description"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Contact Person Name"
+          name="contactPersonName"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Contact Person Phone Number"
+          name="contactPersonPhoneNumber"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        {dates.map((date) => (
+          <div key={date.id}>
+            <Form.Item
+              label={`Date ${date.id}`}
+              rules={[{ required: true, message: "Please select a date." }]}
+            >
+              <DatePicker
+                format="DD/MM/YY"
+                onChange={(date) => handleDateChange(date.id, date)}
               />
-            </div>
-            <div>
-              <label htmlFor="description">Description:</label>
-              <Field type="text" id="description" name="description" required />
-            </div>
-            <div>
-              <label htmlFor="contactPersonName">Contact Person Name:</label>
-              <Field
-                type="text"
-                id="contactPersonName"
-                name="contactPersonName"
-                required
+            </Form.Item>
+            <Form.Item
+              label={`Time ${date.id}`}
+              rules={[{ required: true, message: "Please select a time." }]}
+            >
+              <TimePicker
+                format="HH:mm"
+                onChange={(time) => handleTimeChange(date.id, time)}
               />
-            </div>
-            <div>
-              <label htmlFor="contactPersonPhoneNumber">
-                Contact Person Phone Number:
-              </label>
-              <Field
-                type="text"
-                id="contactPersonPhoneNumber"
-                name="contactPersonPhoneNumber"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="dates">Dates:</label>
-              <FieldArray name="dates">
-                {(arrayHelpers) => (
-                  <div>
-                    {values.dates.map((date, index) => (
-                      <div key={index}>
-                        <DatePicker
-                          selected={date}
-                          onChange={(value) =>
-                            arrayHelpers.replace(index, value)
-                          }
-                          dateFormat="dd/MM/yy hh:mm a"
-                          minDate={new Date()}
-                          showTimeInput
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => arrayHelpers.remove(index)}
-                        >
-                          Remove Date
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => arrayHelpers.push(null)}
-                    >
-                      Add Date
-                    </button>
-                  </div>
-                )}
-              </FieldArray>
-            </div>
-            <div>
-              <label htmlFor="pickupPoint">Pick Up Point:</label>
-              <Field type="text" id="pickupPoint" name="pickupPoint" required />
-            </div>
-            <div>
-              <label htmlFor="dropOffPoint">Drop Off Point:</label>
-              <Field
-                type="text"
-                id="dropOffPoint"
-                name="dropOffPoint"
-                required
-              />
-            </div>
-            <button type="submit">Submit</button>
-          </Form>
-        )}
-      </Formik>
+            </Form.Item>
+            <Button onClick={() => handleRemoveDate(date.id)}>
+              Remove Date
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="dashed"
+          onClick={handleAddDate}
+          style={{ marginBottom: "16px" }}
+        >
+          Add Date
+        </Button>
+        <Form.Item
+          label="Pick Up Point"
+          name="pickupPoint"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Drop Off Point"
+          name="dropOffPoint"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Submit
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
-}
+};
 
 export default OneWayForm;
