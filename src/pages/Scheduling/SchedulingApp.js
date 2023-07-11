@@ -82,64 +82,108 @@ export default function SchedulingApp({ selectedDate, editable }) {
   }, [selectedDate]);
 
   return (
-    <div
-      className="driver-tables-container"
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-      }}
-    >
-      {Object.keys(listOfTripsByDriver).map((driverId) => {
-        const driverTripData = listOfTripsByDriver[driverId] || [];
-        return (
-          <div
-            className="driver-table"
-            key={driverId}
-            style={{
-              width: "25%",
-              marginBottom: "20px",
-              marginRight: "15px",
-            }}
-          >
-            <h3> {driverId} </h3>{" "}
+    <>
+      <div style={{ position: "fixed", height: "600px", width: "300px" }}>
+        <h3>Unscheduled Trips</h3>
+        <div
+          className={
+            localStorage.getItem("darkMode") === "true"
+              ? "ag-theme-alpine-dark"
+              : "ag-theme-alpine"
+          }
+          style={{ height: "400px", width: "100%" }}
+          onDragOver={gridDragOver}
+          onDrop={(e) => gridDrop("Unscheduled Trips", e)}
+        >
+          <AgGridReact
+            columnDefs={[
+              {
+                headerName: "Time",
+                field: "time",
+                dndSource: editable,
+              },
+              {
+                headerName: "Description",
+                field: "description",
+              },
+              {
+                headerName: "id",
+                field: "id",
+              },
+            ]}
+            rowData={listOfTripsByDriver["Unscheduled Trips"]}
+            suppressHorizontalScroll={true}
+            onGridReady={(params) => onGridReady(params, "Unscheduled Trips")}
+            rowDragManaged={true}
+            animateRows={true}
+            getRowId={getRowId}
+          />
+        </div>
+      </div>
+      <div
+        className="driver-tables-container"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        {Object.keys(listOfTripsByDriver).map((driverId) => {
+          var pos;
+          if (driverId === "Unscheduled Trips") {
+            return;
+          }
+          const driverTripData = listOfTripsByDriver[driverId] || [];
+          return (
             <div
-              className={
-                localStorage.getItem("darkMode") === "true"
-                  ? "ag-theme-alpine-dark"
-                  : "ag-theme-alpine"
-              }
-              style={{ height: "400px", width: "100%" }}
-              onDragOver={gridDragOver}
-              onDrop={(e) => gridDrop(driverId, e)}
+              className="driver-table"
+              key={driverId}
+              style={{
+                width: "25%",
+                marginBottom: "20px",
+                marginRight: "15px",
+                position: pos,
+              }}
             >
-              <AgGridReact
-                columnDefs={[
-                  {
-                    headerName: "Time",
-                    field: "time",
-                    dndSource: editable,
-                  },
-                  {
-                    headerName: "Description",
-                    field: "description",
-                  },
-                  {
-                    headerName: "id",
-                    field: "id",
-                  },
-                ]}
-                rowData={driverTripData}
-                suppressHorizontalScroll={true}
-                onGridReady={(params) => onGridReady(params, driverId)}
-                rowDragManaged={true}
-                animateRows={true}
-                getRowId={getRowId}
-              />
+              <h3> {driverId} </h3>
+              <div
+                className={
+                  localStorage.getItem("darkMode") === "true"
+                    ? "ag-theme-alpine-dark"
+                    : "ag-theme-alpine"
+                }
+                style={{ height: "400px", width: "100%" }}
+                onDragOver={gridDragOver}
+                onDrop={(e) => gridDrop(driverId, e)}
+              >
+                <AgGridReact
+                  columnDefs={[
+                    {
+                      headerName: "Time",
+                      field: "time",
+                      dndSource: editable,
+                    },
+                    {
+                      headerName: "Description",
+                      field: "description",
+                    },
+                    {
+                      headerName: "id",
+                      field: "id",
+                    },
+                  ]}
+                  rowData={driverTripData}
+                  suppressHorizontalScroll={true}
+                  onGridReady={(params) => onGridReady(params, driverId)}
+                  rowDragManaged={true}
+                  animateRows={true}
+                  getRowId={getRowId}
+                />
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
