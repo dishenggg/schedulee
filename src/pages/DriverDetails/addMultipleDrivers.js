@@ -5,7 +5,7 @@ import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import Papa from "papaparse";
 
-const AddMultipleDrivers = () => {
+const AddMultipleDrivers = ({ updateList }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -132,10 +132,10 @@ const AddMultipleDrivers = () => {
       }
     });
     await Promise.all(promises);
+    setData(updatedData);
+    updateList();
     setConfirmLoading(false);
     setFormSubmitted(true);
-    console.log(updatedData);
-    setData(updatedData);
   };
 
   return (
@@ -161,7 +161,6 @@ const AddMultipleDrivers = () => {
           e.preventDefault();
           if (formSubmitted) {
             setOpenModal(false);
-            window.location.reload();
           } else {
             onOk();
           }
