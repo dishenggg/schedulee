@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Modal, Upload, message, Table, List } from "antd";
+import { Button, Modal, Upload, message, Table } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -86,7 +86,11 @@ const AddMultipleDrivers = ({ updateList }) => {
           const driver = {};
           driver["key"] = i;
           dataIndex.forEach((header, index) => {
-            driver[header] = row[index];
+            if (/salary/i.test(header)) {
+              driver[header] = parseFloat(row[index]);
+            } else {
+              driver[header] = row[index];
+            }
           });
           return driver;
         });
@@ -150,17 +154,21 @@ const AddMultipleDrivers = ({ updateList }) => {
       </Button>
       <Modal
         open={openModal}
+        destroyOnClose={true}
         title="Upload CSV of Drivers' Details"
         okText={formSubmitted ? "Close" : "Submit"}
         cancelText="Cancel"
         onCancel={() => {
           setOpenModal(false);
+          setData([]);
         }}
         confirmLoading={confirmLoading}
         onOk={(e) => {
           e.preventDefault();
           if (formSubmitted) {
             setOpenModal(false);
+            setFormSubmitted(false);
+            setData([]);
           } else {
             onOk();
           }
