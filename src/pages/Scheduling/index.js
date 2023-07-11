@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SchedulingApp from "./SchedulingApp";
 import { Form } from "./forms.js";
+import { Title } from "../../components/Typography/Title";
 
 const Scheduling = () => {
   const options = ["Standard 1-Way", "Standard 2-Way", "Disposal", "Tour"];
@@ -32,7 +33,7 @@ const Scheduling = () => {
 
   return (
     <>
-      <h1>Scheduling Page</h1>
+      <Title>Scheduling Page</Title>
       <div>
         <label htmlFor="date-input">Select Date:</label>
         <input
