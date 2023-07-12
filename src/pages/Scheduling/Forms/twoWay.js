@@ -13,7 +13,7 @@ const TwoWayForm = ({ setOpenModal }) => {
     setValue(time);
   };
 
-   const handleSubmit = async (values) => {
+  const handleSubmit = async (values) => {
     try {
       const date = ParseDateToFirestore(values.date);
       const unassignedBus = "";
@@ -48,7 +48,10 @@ const TwoWayForm = ({ setOpenModal }) => {
       const tripRef = collection(db, "Dates", date, "trips");
       // await addDoc(tripRef, tripDetails1);
       // await addDoc(tripRef, tripDetails2);
-      Promise.all([addDoc(tripRef, tripDetails1),addDoc(tripRef, tripDetails2)])
+      Promise.all([
+        addDoc(tripRef, tripDetails1),
+        addDoc(tripRef, tripDetails2),
+      ]);
       message.success("Trip added successfully!");
       setOpenModal(false);
       //window.location.reload(); // Refresh the page
@@ -111,10 +114,18 @@ const TwoWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
-        <Form.Item label="Date (YYYY-MM-DD)" name="date">
+        <Form.Item
+          label="Date (YYYY-MM-DD)"
+          name="date"
+          rules={[{ required: true }]}
+        >
           <DatePicker />
         </Form.Item>
-        <Form.Item label="Time (HH:MM)" name="time">
+        <Form.Item
+          label="Time (HH:MM)"
+          name="time"
+          rules={[{ required: true }]}
+        >
           <TimePicker
             format={"HH:mm"}
             value={value}
@@ -137,7 +148,11 @@ const TwoWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
-        <Form.Item label="Return Time" name="returnTime">
+        <Form.Item
+          label="Return Time (HH:MM)"
+          name="returnTime"
+          rules={[{ required: true }]}
+        >
           <TimePicker
             format={"HH:mm"}
             value={value}

@@ -95,10 +95,18 @@ const OneWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
-        <Form.Item label="Date" name="date" rules={[{ required: true }]}>
+        <Form.Item
+          label="Date (YYYY-MM-DD)"
+          name="date"
+          rules={[{ required: true }]}
+        >
           <DatePicker />
         </Form.Item>
-        <Form.Item label="Time" name="time" rules={[{ required: true }]}>
+        <Form.Item
+          label="Time (HH:MM)"
+          name="time"
+          rules={[{ required: true }]}
+        >
           <TimePicker
             format={"HH:mm"}
             value={value}
