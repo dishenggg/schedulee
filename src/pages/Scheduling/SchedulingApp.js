@@ -70,7 +70,8 @@ export default function SchedulingApp({ selectedDate, editable }) {
       });
     } else {
       await updateDoc(doc(db, "Dates", selectedDate, "trips", data.id), {
-        bus: grid,
+        bus: driverId,
+
       });
     }
     populateListOfTripsByDriver();
