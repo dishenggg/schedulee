@@ -55,7 +55,8 @@ export default function SchedulingApp({ selectedDate, editable }) {
     if (!data || data.id == null) {
       return;
     }
-    const gridApi = gridRefs.current[grid];
+    const gridApi = gridRefs.current[driverId];
+
 
     // do nothing if row is already in the grid, otherwise we would have duplicates
     const rowAlreadyInGrid = !!gridApi.getRowNode(data.id);
