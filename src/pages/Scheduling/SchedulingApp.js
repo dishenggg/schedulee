@@ -64,7 +64,7 @@ export default function SchedulingApp({ selectedDate, editable }) {
       return;
     }
 
-    if (grid === "Unscheduled Trips") {
+    if (driverId === "Unscheduled Trips") {
       await updateDoc(doc(db, "Dates", selectedDate, "trips", data.id), {
         bus: "",
       });
