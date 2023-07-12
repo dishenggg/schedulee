@@ -21,7 +21,7 @@ function App() {
     <div
       style={{
         background: darkMode ? '#1e1f21' : 'white',
-        height: '100vh',
+        minHeight: '100vh',
       }}
     >
       <ConfigProvider
@@ -47,7 +47,7 @@ function App() {
         </BrowserRouter>
         <Switch
           style={{
-            position: 'absolute',
+            position: 'fixed',
             bottom: 20,
             right: 20,
           }}
