@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Button, Modal, Upload, message, Table, List } from "antd";
+import { Button, Modal, Upload, message, Table } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import Papa from "papaparse";
 
-const AddMultipleDrivers = () => {
+const AddMultipleDrivers = ({ updateList }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -86,7 +86,11 @@ const AddMultipleDrivers = () => {
           const driver = {};
           driver["key"] = i;
           dataIndex.forEach((header, index) => {
-            driver[header] = row[index];
+            if (/salary/i.test(header)) {
+              driver[header] = parseFloat(row[index]);
+            } else {
+              driver[header] = row[index];
+            }
           });
           return driver;
         });
@@ -132,10 +136,10 @@ const AddMultipleDrivers = () => {
       }
     });
     await Promise.all(promises);
+    setData(updatedData);
+    updateList();
     setConfirmLoading(false);
     setFormSubmitted(true);
-    console.log(updatedData);
-    setData(updatedData);
   };
 
   return (
@@ -150,18 +154,21 @@ const AddMultipleDrivers = () => {
       </Button>
       <Modal
         open={openModal}
+        destroyOnClose={true}
         title="Upload CSV of Drivers' Details"
         okText={formSubmitted ? "Close" : "Submit"}
         cancelText="Cancel"
         onCancel={() => {
           setOpenModal(false);
+          setData([]);
         }}
         confirmLoading={confirmLoading}
         onOk={(e) => {
           e.preventDefault();
           if (formSubmitted) {
             setOpenModal(false);
-            window.location.reload();
+            setFormSubmitted(false);
+            setData([]);
           } else {
             onOk();
           }
