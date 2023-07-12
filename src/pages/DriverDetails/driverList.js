@@ -1,8 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { db } from "../../firebase";
 import {
-  collection,
-  getDocs,
   deleteDoc,
   doc,
   updateDoc,
@@ -12,8 +10,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { Button, Popconfirm, message } from "antd";
 
-function DriverList() {
-  const [drivers, setDrivers] = useState([]);
+function DriverList({ drivers, updateList }) {
   const defaultColDef = useMemo(() => {
     return {
       editable: true,
@@ -22,20 +19,6 @@ function DriverList() {
       flex: 3,
       minWidth: 100,
     };
-  }, []);
-
-  const fetchDrivers = async () => {
-    const driversRef = collection(db, "Bus Drivers");
-    const snapshot = await getDocs(driversRef);
-    const driverData = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setDrivers(driverData);
-  };
-
-  useEffect(() => {
-    fetchDrivers();
   }, []);
 
   const deleteCellRenderer = (params) => {
@@ -62,7 +45,7 @@ function DriverList() {
     deleteDoc(doc(db, "Bus Drivers", data.id))
       .then(() => {
         message.success(data.id + " deleted successfully!");
-        fetchDrivers();
+        updateList();
       })
       .catch((error) => {
         console.log(error);
@@ -106,7 +89,7 @@ function DriverList() {
     } catch (err) {
       message.error(err);
     }
-    fetchDrivers();
+    updateList();
   };
 
   const stringFormatter = (params) => {
@@ -170,7 +153,14 @@ function DriverList() {
   ];
 
   return (
-    <div className={localStorage.getItem('darkMode') === 'true' ? "ag-theme-alpine-dark" : "ag-theme-alpine"} style={{ height: "400px", width: "100%" }}>
+    <div
+      className={
+        localStorage.getItem("darkMode") === "true"
+          ? "ag-theme-alpine-dark"
+          : "ag-theme-alpine"
+      }
+      style={{ height: "400px", width: "100%" }}
+    >
       <AgGridReact
         rowData={drivers}
         columnDefs={columnDefs}

@@ -3,7 +3,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import { Button, Modal, Form, Input, InputNumber, Radio, message } from "antd";
 
-const AddDriver = () => {
+const AddDriver = ({ updateList }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [form] = Form.useForm();
@@ -27,10 +27,10 @@ const AddDriver = () => {
         };
         setConfirmLoading(true);
         await setDoc(driverRef, updatedValues);
+        updateList();
         message.success("Driver added successfully!");
         setOpenModal(false);
         setConfirmLoading(false);
-        window.location.reload(); // Refresh the page
       }
     } catch (error) {
       console.log(error);
