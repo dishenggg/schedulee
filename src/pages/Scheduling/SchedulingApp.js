@@ -44,7 +44,8 @@ export default function SchedulingApp({ selectedDate, editable }) {
     }
   };
 
-  const gridDrop = async (grid, event) => {
+  const gridDrop = async (driverId, event) => {
+
     event.preventDefault();
 
     const jsonData = event.dataTransfer.getData("application/json");
