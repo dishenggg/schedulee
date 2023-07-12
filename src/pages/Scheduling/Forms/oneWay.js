@@ -1,40 +1,43 @@
-import { Form, Input, Button, DatePicker, TimePicker } from "antd";
-import React, { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useState } from "react";
+import { Form, Input, Button, DatePicker, TimePicker, message } from "antd";
+import { Title } from "../../../components/Typography/Title";
+import { db } from "../../../firebase";
+import dayjs from "dayjs";
+import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
 const OneWayForm = ({ setOpenModal }) => {
-  const [dates, setDates] = useState([
-    { id: uuidv4(), date: null, time: null },
-  ]); // Initialize with an empty date
+  const [value, setValue] = useState(null);
 
-  const handleSubmit = (values) => {
-    // Perform validation and submit the form data
-    if (
-      values.customerName &&
-      values.description &&
-      values.contactPersonName &&
-      values.contactPersonPhoneNumber &&
-      values.pickupPoint &&
-      values.dropOffPoint &&
-      dates.length > 0 &&
-      dates.every((date) => date.date && date.time) // Check if every date has both date and time selected
-    ) {
-      const formData = {
+  const onChange = (time) => {
+    setValue(time);
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      const date = ParseDateToFirestore(values.date);
+      const unassignedBus = "";
+      const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
+      const tripDetails = {
+        bus: unassignedBus,
         customerName: values.customerName,
         description: values.description,
-        contactPersonName: values.contactPersonName,
-        contactPersonPhoneNumber: values.contactPersonPhoneNumber,
-        dates,
-        pickupPoint: values.pickupPoint,
+        contactName: values.contactPersonName,
+        contactNumber: values.contactPersonPhoneNumber,
+        pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
+        tripDescription: concatTrips,
+        tripDate: dayjs(values.date).toDate(),
+        startTime: dayjs(values.time).toDate(),
+        endTime: dayjs(values.time).toDate(),
       };
-      console.log("Form data:", formData);
-      // Add your logic here to submit the form data to the backend or perform further actions
+      const tripRef = collection(db, "Dates", date, "trips");
+      await addDoc(tripRef, tripDetails);
+      message.success("Trip added successfully!");
       setOpenModal(false);
-    } else {
-      alert(
-        "Please fill in all required fields, including at least one date with both date and time."
-      );
+      //window.location.reload(); // Refresh the page
+    } catch (error) {
+      message.error(error);
     }
   };
 
@@ -42,40 +45,14 @@ const OneWayForm = ({ setOpenModal }) => {
     console.log("Failed:", errorInfo);
   };
 
-  const handleAddDate = () => {
-    const newDate = { id: uuidv4(), date: null, time: null }; // Generate a unique identifier for the date
-    setDates([...dates, newDate]); // Add a new date object with null date and time values
-  };
-
-  const handleRemoveDate = (id) => {
-    const updatedDates = dates.filter((date) => date.id !== id); // Filter out the date with the specified id
-    setDates(updatedDates);
-  };
-
-  const handleDateChange = (id, date) => {
-    const updatedDates = dates.map((dateObj) => {
-      if (dateObj.id === id) {
-        return { ...dateObj, date: date };
-      }
-      return dateObj;
-    });
-    setDates(updatedDates);
-  };
-
-  const handleTimeChange = (id, time) => {
-    const updatedDates = dates.map((dateObj) => {
-      if (dateObj.id === id) {
-        return { ...dateObj, time: time };
-      }
-      return dateObj;
-    });
-    setDates(updatedDates);
-  };
-
   return (
     <div>
-      <h2>Form</h2>
-      <Form onFinish={handleSubmit} onFinishFailed={onFinishFailed}>
+      <Title level={2}>One Way Form</Title>
+      <Form
+        onFinish={handleSubmit}
+        onFinishFailed={onFinishFailed}
+        layout="vertical"
+      >
         <Form.Item
           label="Customer Name"
           name="customerName"
@@ -98,47 +75,15 @@ const OneWayForm = ({ setOpenModal }) => {
           <Input />
         </Form.Item>
         <Form.Item
-          label="Contact Person Phone Number"
+          label="Contact Person Number"
           name="contactPersonPhoneNumber"
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
-        {dates.map((date) => (
-          <div key={date.id}>
-            <Form.Item
-              label={`Date ${date.id}`}
-              rules={[{ required: true, message: "Please select a date." }]}
-            >
-              <DatePicker
-                format="DD/MM/YY"
-                onChange={(date) => handleDateChange(date.id, date)}
-              />
-            </Form.Item>
-            <Form.Item
-              label={`Time ${date.id}`}
-              rules={[{ required: true, message: "Please select a time." }]}
-            >
-              <TimePicker
-                format="HH:mm"
-                onChange={(time) => handleTimeChange(date.id, time)}
-              />
-            </Form.Item>
-            <Button onClick={() => handleRemoveDate(date.id)}>
-              Remove Date
-            </Button>
-          </div>
-        ))}
-        <Button
-          type="dashed"
-          onClick={handleAddDate}
-          style={{ marginBottom: "16px" }}
-        >
-          Add Date
-        </Button>
         <Form.Item
           label="Pick Up Point"
-          name="pickupPoint"
+          name="pickUpPoint"
           rules={[{ required: true }]}
         >
           <Input />
@@ -149,6 +94,18 @@ const OneWayForm = ({ setOpenModal }) => {
           rules={[{ required: true }]}
         >
           <Input />
+        </Form.Item>
+        <Form.Item label="Date" name="date" rules={[{ required: true }]}>
+          <DatePicker />
+        </Form.Item>
+        <Form.Item label="Time" name="time" rules={[{ required: true }]}>
+          <TimePicker
+            format={"HH:mm"}
+            value={value}
+            onChange={onChange}
+            popupStyle={{ display: "none" }}
+            changeOnBlur={true}
+          />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
