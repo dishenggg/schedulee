@@ -81,7 +81,7 @@ const AddMultipleDrivers = ({ updateList }) => {
       const fileType = file.name.split(".").pop().toLowerCase();
       reader.onload = (e) => {
         const content = e.target.result;
-        const parsedRows = parseContent(content, fileType);
+        const parsedRows = parseContent(content, fileType).slice(1);
         const driverData = parsedRows.map((row, i) => {
           const driver = {};
           driver["key"] = i;
