@@ -35,19 +35,19 @@ const AddMultipleTrips = ({ updateList }) => {
     },
     {
       title: "Date",
-      dataIndex: "date",
+      dataIndex: "tripDate",
     },
     {
       title: "Start Time",
       dataIndex: "startTime",
     },
     {
-      title: "Source",
-      dataIndex: "source",
+      title: "Pick Up",
+      dataIndex: "pickUpPoint",
     },
     {
-      title: "Destination",
-      dataIndex: "destination",
+      title: "Drop Off",
+      dataIndex: "dropOffPoint",
     },
   ];
 
@@ -76,31 +76,31 @@ const AddMultipleTrips = ({ updateList }) => {
     },
     {
       title: "Date",
-      dataIndex: "date",
+      dataIndex: "tripDate",
     },
     {
       title: "Start Time",
       dataIndex: "startTime",
     },
     {
-      title: "Source",
-      dataIndex: "source",
+      title: "Pick Up",
+      dataIndex: "pickUpPoint",
     },
     {
-      title: "Destination",
-      dataIndex: "destination",
+      title: "Drop Off",
+      dataIndex: "dropOffPoint",
     },
     {
       title: "Start Time 2",
       dataIndex: "startTime2",
     },
     {
-      title: "Source",
-      dataIndex: "source2",
+      title: "Pick Up 2",
+      dataIndex: "pickUpPoint2",
     },
     {
-      title: "Destination",
-      dataIndex: "destination2",
+      title: "Drop Off 2",
+      dataIndex: "dropOffPoint2",
     },
   ];
 
@@ -129,7 +129,7 @@ const AddMultipleTrips = ({ updateList }) => {
     },
     {
       title: "Date",
-      dataIndex: "date",
+      dataIndex: "tripDate",
     },
     {
       title: "Start Time",
@@ -140,12 +140,12 @@ const AddMultipleTrips = ({ updateList }) => {
       dataIndex: "endTime",
     },
     {
-      title: "Source",
-      dataIndex: "source",
+      title: "Pick Up",
+      dataIndex: "pickUpPoint",
     },
     {
-      title: "Destination",
-      dataIndex: "destination",
+      title: "Drop Off",
+      dataIndex: "dropOffPoint",
     },
   ];
 
@@ -166,7 +166,7 @@ const AddMultipleTrips = ({ updateList }) => {
     },
     {
       title: "Date",
-      dataIndex: "date",
+      dataIndex: "tripDate",
     },
     {
       title: "Start Time",
@@ -181,11 +181,11 @@ const AddMultipleTrips = ({ updateList }) => {
       dataIndex: "startTime2",
     },
     {
-      title: "Source",
-      dataIndex: "source",
+      title: "Pick Up",
+      dataIndex: "pickUpPoint",
     },
     {
-      title: "Status",
+      title: "Upload Status",
       dataIndex: "status",
     },
   ];
@@ -266,29 +266,26 @@ const AddMultipleTrips = ({ updateList }) => {
     const tripRef = doc(db, "");
     const updatedData = [];
 
-    const postOneWay = async (row) => {
+    const postOneWay = async ({type, ...row}) => {
       const updatedValues = {
         ...row,
+        endTime: row.startTime,
       };
       await setDoc(tripRef, row);
-      updatedData.push({ ...row, status: "Success" });
+      updatedData.push({ ...row, Type: type, status: "Success" });
     };
 
-    const postTwoWay = async (row) => {
-      const updatedValues = {
-        ...row,
-      };
+    const postTwoWay = async ({type, ...row}) => {
       // post two OneWays
-      await setDoc(tripRef, row);
-      updatedData.push({ ...row, status: "Success" });
+      updatedData.push({ ...row, Type: type, status: "Success" });
     };
 
-    const postDisposal = async (row) => {
+    const postDisposal = async ({type, ...row}) => {
       const updatedValues = {
         ...row,
       };
       await setDoc(tripRef, row);
-      updatedData.push({ ...row, status: "Success" });
+      updatedData.push({ ...row, Type: type, status: "Success" });
     };
 
     setConfirmLoading(true);
