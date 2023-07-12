@@ -49,10 +49,6 @@ const AddMultipleTrips = ({ updateList }) => {
       title: "Destination",
       dataIndex: "destination",
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-    },
   ];
 
   const oneWayIndex = oneWayColumns.map((col) => col.dataIndex);
@@ -106,10 +102,6 @@ const AddMultipleTrips = ({ updateList }) => {
       title: "Destination",
       dataIndex: "destination2",
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-    },
   ];
 
   const twoWayIndex = twoWayColumns.map((col) => col.dataIndex);
@@ -154,10 +146,6 @@ const AddMultipleTrips = ({ updateList }) => {
     {
       title: "Destination",
       dataIndex: "destination",
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
     },
   ];
 
@@ -290,6 +278,7 @@ const AddMultipleTrips = ({ updateList }) => {
       const updatedValues = {
         ...row,
       };
+      // post two OneWays
       await setDoc(tripRef, row);
       updatedData.push({ ...row, status: "Success" });
     };
