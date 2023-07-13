@@ -2,10 +2,20 @@ import React, { useState } from "react";
 import { Button, Modal, Upload, message, Table } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { db } from "../../../firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  writeBatch,
+  collection,
+} from "firebase/firestore";
 import Papa from "papaparse";
-
-const AddMultipleTrips = ({ updateList }) => {
+import {
+  ParseTimeToAndFromFirestore,
+  ParseDateToFirestore,
+} from "../../../utils/ParseTime";
+new Date().setSeconds(0)
+const AddMultipleTrips = () => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -38,16 +48,24 @@ const AddMultipleTrips = ({ updateList }) => {
       dataIndex: "tripDate",
     },
     {
-      title: "Start Time",
-      dataIndex: "startTime",
-    },
-    {
       title: "Pick Up",
       dataIndex: "pickUpPoint",
     },
     {
       title: "Drop Off",
       dataIndex: "dropOffPoint",
+    },
+    {
+      title: "No. Pax",
+      dataIndex: "numberPax",
+    },
+    {
+      title: "No. Bus",
+      dataIndex: "numberBus",
+    },
+    {
+      title: "Start Time",
+      dataIndex: "startTime",
     },
   ];
 
@@ -79,10 +97,6 @@ const AddMultipleTrips = ({ updateList }) => {
       dataIndex: "tripDate",
     },
     {
-      title: "Start Time",
-      dataIndex: "startTime",
-    },
-    {
       title: "Pick Up",
       dataIndex: "pickUpPoint",
     },
@@ -91,16 +105,20 @@ const AddMultipleTrips = ({ updateList }) => {
       dataIndex: "dropOffPoint",
     },
     {
+      title: "No. Pax",
+      dataIndex: "numberPax",
+    },
+    {
+      title: "No. Bus",
+      dataIndex: "numberBus",
+    },
+    {
+      title: "Start Time",
+      dataIndex: "startTime",
+    },
+    {
       title: "Start Time 2",
       dataIndex: "startTime2",
-    },
-    {
-      title: "Pick Up 2",
-      dataIndex: "pickUpPoint2",
-    },
-    {
-      title: "Drop Off 2",
-      dataIndex: "dropOffPoint2",
     },
   ];
 
@@ -169,6 +187,18 @@ const AddMultipleTrips = ({ updateList }) => {
       dataIndex: "tripDate",
     },
     {
+      title: "Pick Up",
+      dataIndex: "pickUpPoint",
+    },
+    {
+      title: "No. Pax",
+      dataIndex: "numberPax",
+    },
+    {
+      title: "No. Bus",
+      dataIndex: "numberBus",
+    },
+    {
       title: "Start Time",
       dataIndex: "startTime",
     },
@@ -177,12 +207,8 @@ const AddMultipleTrips = ({ updateList }) => {
       dataIndex: "endTime",
     },
     {
-      title: "Second Start Time (2 Way)",
+      title: "Return Time(2 Way)",
       dataIndex: "startTime2",
-    },
-    {
-      title: "Pick Up",
-      dataIndex: "pickUpPoint",
     },
     {
       title: "Upload Status",
@@ -214,25 +240,22 @@ const AddMultipleTrips = ({ updateList }) => {
   const parseRowsToTrips = (parsedRows) => {
     const res = parsedRows.map((row, i) => {
       const trip = {};
+      var currentIndex;
       trip["key"] = i;
       if (row[0] === "oneway") {
-        oneWayIndex.forEach((header, index) => {
-          trip[header] = row[index];
-        });
+        currentIndex = oneWayIndex;
       } else if (row[0] === "twoway") {
-        twoWayIndex.forEach((header, index) => {
-          trip[header] = row[index];
-        });
+        currentIndex = twoWayIndex;
       } else if (row[0] === "disposal") {
-        disposalIndex.forEach((header, index) => {
-          trip[header] = row[index];
-        });
+        currentIndex = disposalIndex;
       } else {
-        displayIndex.forEach((header, index) => {
-          trip[header] = row[index];
-        });
+        currentIndex = displayIndex;
         trip["status"] = "Trip type is wrong.";
       }
+      currentIndex.forEach((header, index) => {
+        trip[header] = row[index];
+      });
+
       trip["bus"] = "";
       return trip;
     });
@@ -263,37 +286,89 @@ const AddMultipleTrips = ({ updateList }) => {
   };
 
   const onOk = async () => {
-    const tripRef = doc(db, "");
     const updatedData = [];
 
-    const postOneWay = async ({type, ...row}) => {
+    const postOneWay = async ({ type, ...row }) => {
+      const tripRef = collection(db, "Dates", row.tripDate, "trips");
+      const concatTrips = `${row.pickUpPoint} --> ${row.dropOffPoint}`;
       const updatedValues = {
         ...row,
         endTime: row.startTime,
+        tripDescription: concatTrips,
       };
-      await setDoc(tripRef, row);
+      console.log(updatedValues);
+      await setDoc(tripRef, updatedValues);
+      console.log("SET");
       updatedData.push({ ...row, Type: type, status: "Success" });
     };
 
-    const postTwoWay = async ({type, ...row}) => {
+    const postTwoWay = async ({ type, ...row }) => {
       // post two OneWays
+      const tripRef = collection(db, "Dates", row.tripDate, "trips");
+      const batch = writeBatch(db);
+
+      const trip1 = { ...row };
+      const trip2 = { ...row };
+
+      delete trip1.startTime2;
+      trip2.startTime = trip2.startTime2;
+      delete trip2.startTime2;
+
+      batch.set(tripRef, trip1);
+      batch.set(tripRef, trip2);
+
+      await batch.commit();
       updatedData.push({ ...row, Type: type, status: "Success" });
     };
 
-    const postDisposal = async ({type, ...row}) => {
+    const postDisposal = async ({ type, ...row }) => {
+      const tripRef = collection(db, "Dates", row.tripDate, "trips");
       const updatedValues = {
         ...row,
       };
-      await setDoc(tripRef, row);
+      await setDoc(tripRef, updatedValues);
       updatedData.push({ ...row, Type: type, status: "Success" });
+    };
+
+    const prepRowForFirebase = (row) => {
+      const parseTime = (timeString) => {
+        const parts = timeString.split(":");
+        const datetimeObj = new Date();
+        datetimeObj.setHours(parts[0]);
+        datetimeObj.setMinutes(parts[1]);
+        return ParseTimeToAndFromFirestore(datetimeObj);
+      };
+
+      const parseDate = (dateString) => {
+        const parts = dateString.split("/");
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // Adjust month for zero-based index
+        const year = parseInt(parts[2]);
+        const date = new Date(year, month, day);
+        return ParseDateToFirestore(date);
+      };
+
+      Object.entries(row).forEach(([key, value], index) => {
+        if (key === "startTime" || key === "startTime2" || key === "endTime") {
+          row[key] = parseTime(value);
+        } else if (key === "tripDate") {
+          row[key] = parseDate(value);
+        }
+      });
+      return row;
     };
 
     setConfirmLoading(true);
 
     const dataWithoutStatus = data.map(({ status, ...rest }) => rest); // Remove status for firebase
-    const promises = dataWithoutStatus.map(async (row) => {
+    const DataForFirebase = dataWithoutStatus.map((row) =>
+      prepRowForFirebase(row)
+    );
+
+    const promises = DataForFirebase.map(async (row) => {
       try {
         if (row.type === "oneway") {
+          console.log("One way");
           await postOneWay(row);
         } else if (row.type === "twoway") {
           await postTwoWay(row);
@@ -303,12 +378,13 @@ const AddMultipleTrips = ({ updateList }) => {
           return; // Invalid row
         }
       } catch (error) {
-        updatedData.push({ ...row, status: error });
+        updatedData.push({ ...row, status: error.toString() });
       }
     });
     await Promise.all(promises);
     setData(updatedData);
-    updateList();
+    //console.log(updatedData);
+    //updateList();
     setConfirmLoading(false);
     setFormSubmitted(true);
   };
@@ -341,8 +417,7 @@ const AddMultipleTrips = ({ updateList }) => {
             setFormSubmitted(false);
             setData([]);
           } else {
-            //onOk();
-            alert("OK");
+            onOk();
           }
         }}
         width={1200}
