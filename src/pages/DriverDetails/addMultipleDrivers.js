@@ -25,8 +25,8 @@ const AddMultipleDrivers = ({ updateList }) => {
       dataIndex: "contactNumber",
     },
     {
-      title: "IC Number",
-      dataIndex: "icNumber",
+      title: "Bus Size",
+      dataIndex: "busSize",
     },
     {
       title: "Local",
