@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import SchedulingApp from "./SchedulingApp";
-import { Form } from "./forms.js";
+import AddTrip from "./addTrip.js";
 
 const Scheduling = () => {
-  const options = ["Standard 1-Way", "Standard 2-Way", "Disposal", "Tour"];
-  const [myValue, setMyValue] = useState(options[0]);
-
-  useEffect(() => {
-    // Convert the string value to a number when setting the initial state
-    setMyValue(options.indexOf(myValue) + 1);
-  }, []);
-
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleDateChange = (event) => {
@@ -25,7 +17,7 @@ const Scheduling = () => {
     <>
       <h1>Scheduling Page</h1>
       <div>
-        <label htmlFor="date-input">Select Date:</label>
+        <label>Date selected:</label>
         <input
           type="date"
           id="date-input"
@@ -33,21 +25,8 @@ const Scheduling = () => {
           onChange={handleDateChange}
         />
       </div>
-      <p>Selected Date: {formattedDate}</p>
+      <AddTrip />
       <SchedulingApp selectedDate={dateWithoutDashes} />
-      <div>
-        <select
-          onChange={(e) => setMyValue(parseInt(e.target.value))}
-          defaultValue={myValue}
-        >
-          {options.map((option, idx) => (
-            <option key={idx} value={idx + 1}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <Form value={myValue} />
-      </div>
     </>
   );
 };
