@@ -1,10 +1,6 @@
 import { useMemo } from "react";
 import { db } from "../../firebase";
-import {
-  deleteDoc,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -81,10 +77,14 @@ function DriverList({ drivers, updateList }) {
         "Are you sure you want to Update this?"
       );
       if (confirmUpdate) {
-        updateDoc(doc(db, "Bus Drivers", id), updatedData).catch((error) => {
-          console.log(error);
-          message.error("Failed to update driver.");
-        });
+        updateDoc(doc(db, "Bus Drivers", id), updatedData)
+          .then(() => {
+            message.success("Successfully Updated");
+          })
+          .catch((error) => {
+            console.log(error);
+            message.error("Failed to update driver.");
+          });
       }
     } catch (err) {
       message.error(err);
