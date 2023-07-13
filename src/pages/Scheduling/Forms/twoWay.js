@@ -1,104 +1,190 @@
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { useState } from "react";
+import { Form, Input, Button, DatePicker, TimePicker, message, InputNumber, Space } from "antd";
+import { Title } from "../../../components/Typography/Title";
+import { db } from "../../../firebase";
+import dayjs from "dayjs";
+import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
-function TwoWayForm() {
-  const initialValues = {
-    customerName: "",
-    description: "",
-    contactPersonName: "",
-    contactPersonPhoneNumber: "",
-    date: "",
-    pickupPoint: "",
-    dropOffPoint: "",
+const TwoWayForm = ({ setOpenModal }) => {
+  const [value, setValue] = useState(null);
+
+  const onChange = (time) => {
+    setValue(time);
   };
 
-  const handleSubmit = (values) => {
-    // Perform validation and submit the form data
-    if (
-      values.customerName &&
-      values.description &&
-      values.contactPersonName &&
-      values.contactPersonPhoneNumber &&
-      values.date &&
-      values.pickupPoint &&
-      values.dropOffPoint
-    ) {
-      const formData = {
+  const handleSubmit = async (values) => {
+    try {
+      const date = ParseDateToFirestore(values.date);
+      const unassignedBus = "";
+      const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
+      const concatTrips2 = values.dropOffPoint + " --> " + values.pickUpPoint;
+      const tripDetails1 = {
+        bus: unassignedBus,
         customerName: values.customerName,
         description: values.description,
-        contactPersonName: values.contactPersonName,
-        contactPersonPhoneNumber: values.contactPersonPhoneNumber,
-        date: values.date,
-        pickupPoint: values.pickupPoint,
+        contactName: values.contactPersonName,
+        contactNumber: values.contactPersonPhoneNumber,
+        pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
+        tripDescription: concatTrips,
+        tripDate: dayjs(values.date).toDate(),
+        startTime: dayjs(values.time).toDate(),
+        endTime: dayjs(values.time).toDate(),
       };
-      console.log("Form data:", formData);
-      // Add your logic here to submit the form data to the backend or perform further actions
-    } else {
-      alert("Please fill in all required fields.");
+      const tripDetails2 = {
+        bus: unassignedBus,
+        customerName: values.customerName,
+        description: values.description,
+        contactName: values.contactPersonName,
+        contactNumber: values.contactPersonPhoneNumber,
+        pickUpPoint: values.dropOffPoint,
+        dropOffPoint: values.pickUpPoint,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
+        tripDescription: concatTrips2,
+        tripDate: dayjs(values.date).toDate(),
+        startTime: dayjs(values.returnTime).toDate(),
+        endTime: dayjs(values.returnTime).toDate(),
+      };
+      const tripRef = collection(db, "Dates", date, "trips");
+      // await addDoc(tripRef, tripDetails1);
+      // await addDoc(tripRef, tripDetails2);
+      Promise.all([
+        addDoc(tripRef, tripDetails1),
+        addDoc(tripRef, tripDetails2),
+      ]);
+      message.success("Trip added successfully!");
+      setOpenModal(false);
+      //window.location.reload(); // Refresh the page
+    } catch (error) {
+      message.error(error);
     }
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log("Failed:", errorInfo);
   };
 
   return (
     <div>
-      <h2>Form</h2>
-      <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-        <Form>
-          <div>
-            <label htmlFor="customerName">Customer Name:</label>
-            <Field type="text" id="customerName" name="customerName" required />
-          </div>
-          <div>
-            <label htmlFor="description">Description:</label>
-            <Field type="text" id="description" name="description" required />
-          </div>
-          <div>
-            <label htmlFor="contactPersonName">Contact Person Name:</label>
-            <Field
-              type="text"
-              id="contactPersonName"
-              name="contactPersonName"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="contactPersonPhoneNumber">
-              Contact Person Phone Number:
-            </label>
-            <Field
-              type="text"
-              id="contactPersonPhoneNumber"
-              name="contactPersonPhoneNumber"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="date">Date:</label>
-            <Field type="text" id="date" name="date" required />
-          </div>
-          <div>
-            <label htmlFor="pickupPoint">Pick Up Point:</label>
-            <Field type="text" id="pickupPoint" name="pickupPoint" required />
-          </div>
-          <div>
-            <label htmlFor="dropOffPoint">Drop Off Point:</label>
-            <Field type="text" id="dropOffPoint" name="dropOffPoint" required />
-          </div>
-          <div>
-            <label htmlFor="date">Return Date:</label>
-            <Field type="text" id="date" name="date" required />
-          </div>
-          <div>
-            <label htmlFor="pickupPoint">Return Pick Up Point:</label>
-            <Field type="text" id="pickupPoint" name="pickupPoint" required />
-          </div>
-          <div>
-            <label htmlFor="dropOffPoint">Return Drop Off Point:</label>
-            <Field type="text" id="dropOffPoint" name="dropOffPoint" required />
-          </div>
-          <button type="submit">Submit</button>
-        </Form>
-      </Formik>
+      <Title level={2}>Two Way Form</Title>
+      <Form
+        onFinish={handleSubmit}
+        onFinishFailed={onFinishFailed}
+        layout="vertical"
+      >
+        <Form.Item
+          label="Customer Name"
+          name="customerName"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Description"
+          name="description"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Contact Person Name"
+          name="contactPersonName"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Contact Person Phone Number"
+          name="contactPersonPhoneNumber"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Pick Up Point"
+          name="pickUpPoint"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Drop Off Point"
+          name="dropOffPoint"
+          rules={[{ required: true }]}
+        >
+          <Input />
+        </Form.Item>
+        <Space>
+        <Form.Item
+          label="Date (YYYY-MM-DD)"
+          name="date"
+          rules={[{ required: true }]}
+        >
+          <DatePicker />
+        </Form.Item>
+        <Form.Item
+          label="Pick Up Time (HH:MM)"
+          name="time"
+          rules={[{ required: true }]}
+        >
+          <TimePicker
+            format={"HH:mm"}
+            value={value}
+            onChange={onChange}
+            popupStyle={{ display: "none" }}
+            changeOnBlur={true}
+          />
+        </Form.Item>
+        </Space>
+        <Form.Item
+          label="Return Time (HH:MM)"
+          name="returnTime"
+          rules={[{ required: true }]}
+        >
+          <TimePicker
+            format={"HH:mm"}
+            value={value}
+            onChange={onChange}
+            popupStyle={{ display: "none" }}
+            changeOnBlur={true}
+          />
+        </Form.Item>
+        <Space>
+        <Form.Item
+          label="Number of Pax"
+          name="numberPax"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
+        </Form.Item>
+        <Form.Item
+          label="Number of Buses"
+          name="numberBus"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
+        </Form.Item>
+        </Space>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Submit
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
-}
+};
+
 export default TwoWayForm;
