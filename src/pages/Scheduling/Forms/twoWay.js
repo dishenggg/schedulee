@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Form, Input, Button, DatePicker, TimePicker, message } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  DatePicker,
+  TimePicker,
+  message,
+  InputNumber,
+} from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
 import dayjs from "dayjs";
@@ -27,6 +35,8 @@ const TwoWayForm = ({ setOpenModal }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
         tripDescription: concatTrips,
         tripDate: dayjs(values.date).toDate(),
         startTime: dayjs(values.time).toDate(),
@@ -40,6 +50,8 @@ const TwoWayForm = ({ setOpenModal }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint2,
         dropOffPoint: values.dropOffPoint2,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
         tripDescription: concatTrips2,
         tripDate: dayjs(values.date).toDate(),
         startTime: dayjs(values.returnTime).toDate(),
@@ -160,6 +172,28 @@ const TwoWayForm = ({ setOpenModal }) => {
             popupStyle={{ display: "none" }}
             changeOnBlur={true}
           />
+        </Form.Item>
+        <Form.Item
+          label="Number of Pax"
+          name="numberPax"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
+        </Form.Item>
+        <Form.Item
+          label="Number of Buses"
+          name="numberBus"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
