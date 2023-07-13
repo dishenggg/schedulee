@@ -18,7 +18,7 @@ const TwoWayForm = ({ setOpenModal }) => {
       const date = ParseDateToFirestore(values.date);
       const unassignedBus = "";
       const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
-      const concatTrips2 = values.pickUpPoint2 + " --> " + values.dropOffPoint2;
+      const concatTrips2 = values.dropOffPoint + " --> " + values.pickUpPoint;
       const tripDetails1 = {
         bus: unassignedBus,
         customerName: values.customerName,
@@ -40,8 +40,8 @@ const TwoWayForm = ({ setOpenModal }) => {
         description: values.description,
         contactName: values.contactPersonName,
         contactNumber: values.contactPersonPhoneNumber,
-        pickUpPoint: values.pickUpPoint2,
-        dropOffPoint: values.dropOffPoint2,
+        pickUpPoint: values.dropOffPoint,
+        dropOffPoint: values.pickUpPoint,
         numberPax: values.numberPax,
         numberBus: values.numberBus,
         tripDescription: concatTrips2,
@@ -105,14 +105,14 @@ const TwoWayForm = ({ setOpenModal }) => {
           <Input />
         </Form.Item>
         <Form.Item
-          label="First Pick Up Point"
+          label="Pick Up Point"
           name="pickUpPoint"
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
-          label="First Drop Off Point"
+          label="Drop Off Point"
           name="dropOffPoint"
           rules={[{ required: true }]}
         >
@@ -127,7 +127,7 @@ const TwoWayForm = ({ setOpenModal }) => {
           <DatePicker />
         </Form.Item>
         <Form.Item
-          label="Time (HH:MM)"
+          label="Pick Up Time (HH:MM)"
           name="time"
           rules={[{ required: true }]}
         >
@@ -140,20 +140,6 @@ const TwoWayForm = ({ setOpenModal }) => {
           />
         </Form.Item>
         </Space>
-        <Form.Item
-          label="Second Pick Up Point"
-          name="pickUpPoint2"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Second Drop Off Point"
-          name="dropOffPoint2"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
         <Form.Item
           label="Return Time (HH:MM)"
           name="returnTime"
