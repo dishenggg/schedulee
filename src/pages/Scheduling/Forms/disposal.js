@@ -1,38 +1,54 @@
 import { useState } from "react";
-import { Form, Input, Button, DatePicker, TimePicker  } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  DatePicker,
+  TimePicker,
+  InputNumber,
+  message,
+} from "antd";
 import { Title } from "../../../components/Typography/Title";
+import dayjs from "dayjs";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../../../firebase";
+import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
 const Disposal = ({ setOpenModal }) => {
-  
   const [value, setValue] = useState(null);
 
   const onChange = (time) => {
     setValue(time);
   };
-  const handleSubmit = (values) => {
-    if (
-      values.customerName &&
-      values.description &&
-      values.contactPersonName &&
-      values.contactPersonPhoneNumber &&
-      values.date &&
-      values.time &&
-      values.tripDescription
-    ) {
-      const formData = {
+
+  const handleSubmit = async (values) => {
+    try {
+      const date = ParseDateToFirestore(values.date);
+      const unassignedBus = "";
+      const concatTrips = values.tripDescription;
+      const disposalTrip = "disposal";
+      const tripDetails = {
+        bus: unassignedBus,
         customerName: values.customerName,
-        description: values.description,
-        contactPersonName: values.contactPersonName,
-        contactPersonPhoneNumber: values.contactPersonPhoneNumber,
-        date: values.date,
-        time: values.time,
-        tripDescription : values.tripDescription
+        contactName: values.contactPersonName,
+        contactNumber: values.contactPersonPhoneNumber,
+        pickUpPoint: disposalTrip,
+        dropOffPoint: disposalTrip,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
+        tripDescription: concatTrips,
+        tripDate: dayjs(values.date).toDate(),
+        startTime: dayjs(values.startTime).toDate(),
+        endTime: dayjs(values.endTime).toDate(),
       };
-      console.log("Form data:", formData);
-      // Add your logic here to submit the form data to the backend or perform further actions
-      setOpenModal(false);
-    } else {
-      alert("Please fill in all required fields");
+      console.log(tripDetails);
+      // const tripRef = collection(db, "Dates", date, "trips");
+      // await addDoc(tripRef, tripDetails);
+      // message.success("Trip added successfully!");
+      // setOpenModal(false);
+      //window.location.reload(); // Refresh the page
+    } catch (error) {
+      message.error(error);
     }
   };
 
@@ -47,6 +63,10 @@ const Disposal = ({ setOpenModal }) => {
         onFinish={handleSubmit}
         onFinishFailed={onFinishFailed}
         layout="vertical"
+        initialValues={{
+          numberPax: "1",
+          numberBus: "1",
+        }}
       >
         <Form.Item
           label="Customer Name"
@@ -70,35 +90,73 @@ const Disposal = ({ setOpenModal }) => {
           <Input />
         </Form.Item>
         <Form.Item
-          label="Contact Person Phone Number"
+          label="Contact Person Number"
           name="contactPersonPhoneNumber"
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
-          label="Pick Up Point"
-          name="pickUpPoint"
+          label="Trip Description"
+          name="tripDescription"
           rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
-          label="Drop Off Point"
-          name="dropOffPoint"
+          label="Date (YYYY-MM-DD)"
+          name="date"
           rules={[{ required: true }]}
         >
-          <Input />
-        </Form.Item>
-        <Form.Item
-        label = "Date"
-        name = "date">
           <DatePicker />
         </Form.Item>
         <Form.Item
-        label = "Time"
-        name = "time">
-          <TimePicker format={"HH:mm"} value={value} onChange={onChange} popupStyle={{display:"none"}} changeOnBlur={true}/>
+          label="Start Time (HH:MM)"
+          name="startTime"
+          rules={[{ required: true }]}
+        >
+          <TimePicker
+            format={"HH:mm"}
+            value={value}
+            onChange={onChange}
+            popupStyle={{ display: "none" }}
+            changeOnBlur={true}
+          />
+        </Form.Item>
+        <Form.Item
+          label="End Time (HH:MM)"
+          name="endTime"
+          rules={[{ required: true }]}
+        >
+          <TimePicker
+            format={"HH:mm"}
+            value={value}
+            onChange={onChange}
+            popupStyle={{ display: "none" }}
+            changeOnBlur={true}
+          />
+        </Form.Item>
+        <Form.Item
+          label="Number of Pax"
+          name="numberPax"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
+        </Form.Item>
+        <Form.Item
+          label="Number of Buses"
+          name="numberBus"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
