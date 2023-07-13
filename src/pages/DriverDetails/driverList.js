@@ -1,10 +1,6 @@
 import { useMemo } from "react";
 import { db } from "../../firebase";
-import {
-  deleteDoc,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -58,8 +54,8 @@ function DriverList({ drivers, updateList }) {
       throw new Error("Contact number should only have 8 digits!");
     }
 
-    if (!/^\d{3}[a-zA-Z]$/.test(row.icNumber)) {
-      throw new Error("Invalid IC Number. IC Number should be in 123A format.");
+    if (!(row.busSize > 0)) {
+      throw new Error("Bus Size should be atleast 1");
     }
 
     if (
@@ -117,8 +113,8 @@ function DriverList({ drivers, updateList }) {
       valueFormatter: stringFormatter,
     },
     {
-      headerName: "IC Number",
-      field: "icNumber",
+      headerName: "Bus Size",
+      field: "busSize",
       flex: 2,
     },
     {

@@ -101,19 +101,15 @@ const AddDriver = ({ updateList }) => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="icNumber"
-            label="NRIC (Last 4 Characters)"
+            name="busSize"
+            label="Bus Size"
             rules={[
               {
                 required: true,
               },
-              {
-                pattern: /^\d{3}[A-Z]$/,
-                message: "Correct Format: 123C",
-              },
             ]}
           >
-            <Input />
+            <InputNumber min={1} step={1} />
           </Form.Item>
           <Form.Item
             name="contactNumber"
