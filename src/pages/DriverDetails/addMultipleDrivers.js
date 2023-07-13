@@ -132,7 +132,7 @@ const AddMultipleDrivers = ({ updateList }) => {
           updatedData.push({ ...row, busNumber, status: "Success" });
         }
       } catch (error) {
-        updatedData.push({ ...row, status: error });
+        updatedData.push({ ...row, status: error.toString() });
       }
     });
     await Promise.all(promises);
