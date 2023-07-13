@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form, Input, Button, DatePicker, TimePicker, message } from "antd";
+import { Form, Input, Button, DatePicker, TimePicker, message, InputNumber, Space } from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
 import dayjs from "dayjs";
@@ -27,6 +27,8 @@ const TwoWayForm = ({ setOpenModal }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
         tripDescription: concatTrips,
         tripDate: dayjs(values.date).toDate(),
         startTime: dayjs(values.time).toDate(),
@@ -40,6 +42,8 @@ const TwoWayForm = ({ setOpenModal }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint2,
         dropOffPoint: values.dropOffPoint2,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
         tripDescription: concatTrips2,
         tripDate: dayjs(values.date).toDate(),
         startTime: dayjs(values.returnTime).toDate(),
@@ -114,6 +118,7 @@ const TwoWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
+        <Space>
         <Form.Item
           label="Date (YYYY-MM-DD)"
           name="date"
@@ -134,6 +139,7 @@ const TwoWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
+        </Space>
         <Form.Item
           label="Second Pick Up Point"
           name="pickUpPoint2"
@@ -161,6 +167,30 @@ const TwoWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
+        <Space>
+        <Form.Item
+          label="Number of Pax"
+          name="numberPax"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
+        </Form.Item>
+        <Form.Item
+          label="Number of Buses"
+          name="numberBus"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
+        </Form.Item>
+        </Space>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit
