@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  Form,
-  Input,
-  Button,
-  DatePicker,
-  TimePicker,
-  message,
-  InputNumber,
-} from "antd";
+import { Form, Input, Button, DatePicker, TimePicker, message, InputNumber, Space } from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
 import dayjs from "dayjs";
@@ -126,6 +118,7 @@ const TwoWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
+        <Space>
         <Form.Item
           label="Date (YYYY-MM-DD)"
           name="date"
@@ -146,6 +139,7 @@ const TwoWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
+        </Space>
         <Form.Item
           label="Return Time (HH:MM)"
           name="returnTime"
@@ -159,6 +153,7 @@ const TwoWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
+        <Space>
         <Form.Item
           label="Number of Pax"
           name="numberPax"
@@ -181,6 +176,7 @@ const TwoWayForm = ({ setOpenModal }) => {
         >
           <InputNumber min={1} step={1} />
         </Form.Item>
+        </Space>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit

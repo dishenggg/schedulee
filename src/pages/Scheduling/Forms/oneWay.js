@@ -7,6 +7,7 @@ import {
   TimePicker,
   message,
   InputNumber,
+  Space,
 } from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
@@ -109,6 +110,7 @@ const OneWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
+        <Space>
         <Form.Item
           label="Date (YYYY-MM-DD)"
           name="date"
@@ -129,6 +131,8 @@ const OneWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
+        </Space>
+        <Space>
         <Form.Item
           label="Number of Pax"
           name="numberPax"
@@ -151,6 +155,7 @@ const OneWayForm = ({ setOpenModal }) => {
         >
           <InputNumber min={1} step={1} />
         </Form.Item>
+        </Space>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit

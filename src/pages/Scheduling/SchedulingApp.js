@@ -1,29 +1,25 @@
-import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import { useEffect, useState, useRef } from "react";
-import { db } from "../../firebase";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import { Title } from "../../components/Typography/Title";
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { useEffect, useState, useRef } from 'react';
+import { db } from '../../firebase';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { Title } from '../../components/Typography/Title';
 
 export default function SchedulingApp({ selectedDate, editable }) {
   const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
   const gridRefs = useRef({});
 
   const populateListOfTripsByDriver = async () => {
-    const driverQuery = await getDocs(collection(db, "Bus Drivers"));
+    const driverQuery = await getDocs(collection(db, 'Bus Drivers'));
     const drivers = driverQuery.docs.map((doc) => doc.id);
-    const tripsQuery = await getDocs(
-      collection(db, "Dates", selectedDate, "trips")
-    );
+    const tripsQuery = await getDocs(collection(db, 'Dates', selectedDate, 'trips'));
     const trips = tripsQuery.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
     const res = {};
-    res["Unscheduled Trips"] = trips.filter(
-      (trip) => trip.bus === "" || trip.bus === null
-    );
+    res['Unscheduled Trips'] = trips.filter((trip) => trip.bus === '' || trip.bus === null);
     drivers.forEach((driverId) => {
       res[driverId] = trips.filter((trip) => trip.bus === driverId);
     });
@@ -39,16 +35,15 @@ export default function SchedulingApp({ selectedDate, editable }) {
   const gridDragOver = (event) => {
     const dragSupported = event.dataTransfer.types.length;
     if (dragSupported) {
-      event.dataTransfer.dropEffect = "move";
+      event.dataTransfer.dropEffect = 'move';
       event.preventDefault();
     }
   };
 
   const gridDrop = async (driverId, event) => {
-
     event.preventDefault();
 
-    const jsonData = event.dataTransfer.getData("application/json");
+    const jsonData = event.dataTransfer.getData('application/json');
     const data = JSON.parse(jsonData);
 
     // if data missing or data has no it, do nothing
@@ -57,21 +52,19 @@ export default function SchedulingApp({ selectedDate, editable }) {
     }
     const gridApi = gridRefs.current[driverId];
 
-
     // do nothing if row is already in the grid, otherwise we would have duplicates
     const rowAlreadyInGrid = !!gridApi.getRowNode(data.id);
     if (rowAlreadyInGrid) {
       return;
     }
 
-    if (driverId === "Unscheduled Trips") {
-      await updateDoc(doc(db, "Dates", selectedDate, "trips", data.id), {
-        bus: "",
+    if (driverId === 'Unscheduled Trips') {
+      await updateDoc(doc(db, 'Dates', selectedDate, 'trips', data.id), {
+        bus: '',
       });
     } else {
-      await updateDoc(doc(db, "Dates", selectedDate, "trips", data.id), {
+      await updateDoc(doc(db, 'Dates', selectedDate, 'trips', data.id), {
         bus: driverId,
-
       });
     }
     populateListOfTripsByDriver();
@@ -92,24 +85,22 @@ export default function SchedulingApp({ selectedDate, editable }) {
         <Title level={4}> {driverId} </Title>
         <div
           className={
-            localStorage.getItem("darkMode") === "true"
-              ? "ag-theme-alpine-dark"
-              : "ag-theme-alpine"
+            localStorage.getItem('darkMode') === 'true' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'
           }
-          style={{ height: "400px", width: "100%" }}
+          style={{ height: '400px', width: '100%' }}
           onDragOver={gridDragOver}
           onDrop={(e) => gridDrop(driverId, e)}
         >
           <AgGridReact
             columnDefs={[
               {
-                headerName: "Time",
-                field: "time",
+                headerName: 'Time',
+                field: 'time',
                 dndSource: editable,
               },
               {
-                headerName: "Description",
-                field: "description",
+                headerName: 'Description',
+                field: 'description',
               },
             ]}
             rowData={driverTripData}
@@ -125,38 +116,42 @@ export default function SchedulingApp({ selectedDate, editable }) {
   };
 
   return (
-    <div>
+    <div
+      style={{
+        padding:"10px 5px 40px 5px",
+      }}
+    >
       <div
         style={{
-          position: "fixed",
-          height: "600px",
-          width: "400px",
-          marginLeft: "20px",
+          position: 'fixed',
+          height: '600px',
+          width: '400px',
+          marginLeft: '20px',
         }}
       >
-        {generateGrid("Unscheduled Trips")}
+        {generateGrid('Unscheduled Trips')}
       </div>
       <div
         className="driver-tables-container"
         style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          marginLeft: "270px",
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          marginLeft: '270px',
         }}
       >
         {Object.keys(listOfTripsByDriver).map((driverId) => {
           var pos;
-          if (driverId === "Unscheduled Trips") {
+          if (driverId === 'Unscheduled Trips') {
             return;
           }
           return (
             <div
               style={{
-                height: "400px",
-                width: "33%",
-                marginBottom: "40px",
-                marginRight: "15px",
+                height: '400px',
+                width: '33%',
+                marginBottom: '40px',
+                marginRight: '15px',
               }}
             >
               {generateGrid(driverId)}
