@@ -1,9 +1,17 @@
 import { useState } from "react";
-import { Form, Input, Button, DatePicker, TimePicker, message } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  DatePicker,
+  TimePicker,
+  message,
+  InputNumber,
+} from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
 import dayjs from "dayjs";
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
 import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
 const OneWayForm = ({ setOpenModal }) => {
@@ -26,6 +34,8 @@ const OneWayForm = ({ setOpenModal }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
+        numberPax: values.numberPax,
+        numberBus: values.numberBus,
         tripDescription: concatTrips,
         tripDate: dayjs(values.date).toDate(),
         startTime: dayjs(values.time).toDate(),
@@ -52,6 +62,10 @@ const OneWayForm = ({ setOpenModal }) => {
         onFinish={handleSubmit}
         onFinishFailed={onFinishFailed}
         layout="vertical"
+        initialValues={{
+          numberPax: "1",
+          numberBus: "1",
+        }}
       >
         <Form.Item
           label="Customer Name"
@@ -114,6 +128,28 @@ const OneWayForm = ({ setOpenModal }) => {
             popupStyle={{ display: "none" }}
             changeOnBlur={true}
           />
+        </Form.Item>
+        <Form.Item
+          label="Number of Pax"
+          name="numberPax"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
+        </Form.Item>
+        <Form.Item
+          label="Number of Buses"
+          name="numberBus"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <InputNumber min={1} step={1} />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
