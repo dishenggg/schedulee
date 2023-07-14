@@ -1,10 +1,20 @@
 import { useState } from "react";
-import { Form, Input, Button, DatePicker, TimePicker, message, InputNumber, Space } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  DatePicker,
+  TimePicker,
+  message,
+  InputNumber,
+} from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
-import dayjs from "dayjs";
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
-import { ParseDateToFirestore } from "../../../utils/ParseTime";
+import { addDoc, collection } from "firebase/firestore";
+import {
+  ParseDateToFirestore,
+  ParseTimeToFirestore,
+} from "../../../utils/ParseTime";
 
 const TwoWayForm = ({ setOpenModal }) => {
   const [value, setValue] = useState(null);
@@ -30,9 +40,8 @@ const TwoWayForm = ({ setOpenModal }) => {
         numberPax: values.numberPax,
         numberBus: values.numberBus,
         tripDescription: concatTrips,
-        tripDate: dayjs(values.date).toDate(),
-        startTime: dayjs(values.time).toDate(),
-        endTime: dayjs(values.time).toDate(),
+        startTime: ParseTimeToFirestore(values.time, values.date),
+        endTime: ParseTimeToFirestore(values.time, values.date),
       };
       const tripDetails2 = {
         bus: unassignedBus,
@@ -45,9 +54,8 @@ const TwoWayForm = ({ setOpenModal }) => {
         numberPax: values.numberPax,
         numberBus: values.numberBus,
         tripDescription: concatTrips2,
-        tripDate: dayjs(values.date).toDate(),
-        startTime: dayjs(values.returnTime).toDate(),
-        endTime: dayjs(values.returnTime).toDate(),
+        startTime: ParseTimeToFirestore(values.returnTime, values.date),
+        endTime: ParseTimeToFirestore(values.returnTime, values.date),
       };
       const tripRef = collection(db, "Dates", date, "trips");
       // await addDoc(tripRef, tripDetails1);
@@ -58,7 +66,7 @@ const TwoWayForm = ({ setOpenModal }) => {
       ]);
       message.success("Trip added successfully!");
       setOpenModal(false);
-      //window.location.reload(); // Refresh the page
+      window.location.reload(); // Refresh the page
     } catch (error) {
       message.error(error);
     }
@@ -118,7 +126,6 @@ const TwoWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
-        <Space>
         <Form.Item
           label="Date (YYYY-MM-DD)"
           name="date"
@@ -139,7 +146,6 @@ const TwoWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
-        </Space>
         <Form.Item
           label="Return Time (HH:MM)"
           name="returnTime"
@@ -153,7 +159,6 @@ const TwoWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
-        <Space>
         <Form.Item
           label="Number of Pax"
           name="numberPax"
@@ -176,7 +181,6 @@ const TwoWayForm = ({ setOpenModal }) => {
         >
           <InputNumber min={1} step={1} />
         </Form.Item>
-        </Space>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit
