@@ -40,7 +40,7 @@ const ContractForm = ({ setOpenModal }) => {
       dayOfWeek: values.dayOfWeek,
       time: values.time,
       numberPax: values.numberPax,
-      numberBus: values.numberBus,
+      buses: [], // Initialize empty array for buses
       location: values.location,
     };
     setRecurringTrips([...recurringTrips, trip]);
@@ -67,7 +67,7 @@ const ContractForm = ({ setOpenModal }) => {
           dayOfWeek: trip.dayOfWeek,
           time: dayjs(trip.time).toDate(),
           numberPax: trip.numberPax,
-          numberBus: trip.numberBus,
+          buses: trip.buses,
           location: trip.location,
         })),
       };
@@ -75,7 +75,6 @@ const ContractForm = ({ setOpenModal }) => {
       await addDoc(tripRef, tripDetails);
       message.success("Contract added successfully!");
       setOpenModal(false);
-      //window.location.reload(); // Refresh the page
     } catch (error) {
       message.error(error);
     }
@@ -169,32 +168,59 @@ const ContractForm = ({ setOpenModal }) => {
                   >
                     <InputNumber min={1} step={1} />
                   </Form.Item>
-                  <Form.Item
-                    label="Number of Buses"
-                    name={[field.name, "numberBus"]}
-                    rules={[{ required: true }]}
-                  >
-                    <InputNumber min={1} step={1} />
-                  </Form.Item>
-                  <Form.Item
-                    label="Pick Up Point"
-                    name={[field.name, "pickUpPoint"]}
-                    rules={[{ required: true }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item
-                    label="Drop Off Point"
-                    name={[field.name, "dropOffPoint"]}
-                    rules={[{ required: true }]}
-                  >
-                    <Input />
-                  </Form.Item>
+                  <Form.List name={[field.name, "buses"]}>
+                    {(busFields, { add: addBus, remove: removeBus }) => (
+                      <>
+                        {busFields.map((busField, busIndex) => (
+                          <div key={busField.key}>
+                            <h4>Bus {busIndex + 1}</h4>
+                            <Form.Item
+                              label="Select Bus"
+                              name={[busField.name, "busId"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Please select a bus",
+                                },
+                              ]}
+                            >
+                              <Select placeholder="Select a bus">
+                                <Option value="bus1">keep unassigned</Option>
+                                <Option value="bus2">bus1</Option>
+                                <Option value="bus3">bus2</Option>
+                              </Select>
+                            </Form.Item>
+                            <Button
+                              type="primary"
+                              danger
+                              onClick={() => removeBus(busField.name)}
+                              size="middle"
+                            >
+                              Remove Bus
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="primary"
+                          onClick={() => addBus()}
+                          size="middle"
+                          style={{
+                            marginTop: "0.5rem",
+                            marginBottom: "0.5rem",
+                            backgroundColor: "Green",
+                            width: "108px",
+                          }}
+                        >
+                          Add Bus
+                        </Button>
+                      </>
+                    )}
+                  </Form.List>
                   <Button
                     type="primary"
                     danger
                     onClick={() => remove(field.name)}
-                    size={"middle"}
+                    size="middle"
                   >
                     Remove Trip
                   </Button>
@@ -203,11 +229,11 @@ const ContractForm = ({ setOpenModal }) => {
               <Button
                 type="primary"
                 onClick={() => add()}
-                size={"middle"}
+                size="middle"
                 style={{
                   marginTop: "0.5rem",
                   marginBottom: "0.5rem",
-                  backgroundColor: "Green ",
+                  backgroundColor: "Green",
                   width: "108px",
                 }}
               >
