@@ -3,7 +3,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import { Button, Modal, Form, Input, InputNumber, Radio, message } from "antd";
 
-const AddDriver = ({ updateDriverList }) => {
+const AddSubCon = ({ updateSubConList }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [form] = Form.useForm();
@@ -12,23 +12,22 @@ const AddDriver = ({ updateDriverList }) => {
     try {
       console.log(values);
       const busNumber = values.busNumber.toUpperCase();
-      const driverRef = doc(db, "Bus Drivers", busNumber);
-      const driverSnapshot = await getDoc(driverRef);
+      const subConRef = doc(db, "Sub Cons", busNumber);
+      const subConsSnapshot = await getDoc(subConRef);
 
-      if (driverSnapshot.exists()) {
+      if (subConsSnapshot.exists()) {
         message.error(
-          "Bus Number already exists. Please choose a different Bus Number."
+          "Sub Con already exists. Please choose a different Bus Number."
         );
       } else {
         const updatedValues = {
           ...values,
           busNumber, // Update the busNumber value to the capitalized version
-          local: values.local === "1",
         };
         setConfirmLoading(true);
-        await setDoc(driverRef, updatedValues);
-        updateDriverList();
-        message.success("Driver added successfully!");
+        await setDoc(subConRef, updatedValues);
+        updateSubConList();
+        message.success("Sub Con added successfully!");
         setOpenModal(false);
         setConfirmLoading(false);
       }
@@ -46,11 +45,11 @@ const AddDriver = ({ updateDriverList }) => {
           setOpenModal(true);
         }}
       >
-        Add Driver
+        Add Sub Con
       </Button>
       <Modal
         open={openModal}
-        title="Add A Driver"
+        title="Add Sub Con"
         okText="Submit"
         cancelText="Cancel"
         onCancel={() => {
@@ -78,8 +77,8 @@ const AddDriver = ({ updateDriverList }) => {
           }}
         >
           <Form.Item
-            name="busNumber"
-            label="Bus Number"
+            name="companyName"
+            label="Company Name"
             rules={[
               {
                 required: true,
@@ -90,26 +89,16 @@ const AddDriver = ({ updateDriverList }) => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="name"
-            label="Name"
+            name="busNumber"
+            label="Bus Number"
             rules={[
               {
                 required: true,
+                message: "'${label}' Required",
               },
             ]}
           >
             <Input />
-          </Form.Item>
-          <Form.Item
-            name="busSize"
-            label="Bus Size"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <InputNumber min={1} step={1} />
           </Form.Item>
           <Form.Item
             name="contactNumber"
@@ -127,44 +116,15 @@ const AddDriver = ({ updateDriverList }) => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="minSalary"
-            label="Minimum Salary"
+            label="Bus Size"
+            name="busSize"
             rules={[
               {
                 required: true,
               },
             ]}
           >
-            <InputNumber min={1} step={0.01} />
-          </Form.Item>
-          <Form.Item
-            name="normalSalary"
-            label="Normal Salary"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <InputNumber min={1} step={0.01} />
-          </Form.Item>
-          <Form.Item
-            name="peakHourSalary"
-            label="Peak Hour Salary"
-            rules={[
-              {
-                required: true,
-                message: "'${label}' Required",
-              },
-            ]}
-          >
-            <InputNumber min={1} step={0.01} />
-          </Form.Item>
-          <Form.Item name="local">
-            <Radio.Group>
-              <Radio value="1">Local</Radio>  
-              <Radio value="0">Non-Local</Radio>
-            </Radio.Group>
+            <InputNumber min={1} step={1} />
           </Form.Item>
         </Form>
       </Modal>
@@ -172,4 +132,4 @@ const AddDriver = ({ updateDriverList }) => {
   );
 };
 
-export default AddDriver;
+export default AddSubCon;

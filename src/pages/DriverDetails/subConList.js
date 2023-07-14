@@ -1,12 +1,16 @@
 import { useMemo } from "react";
 import { db } from "../../firebase";
-import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import {
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { Button, Popconfirm, message } from "antd";
 
-function DriverList({ drivers, updateDriverList }) {
+function SubConList({ subCons, updateSubConList }) {
   const defaultColDef = useMemo(() => {
     return {
       editable: true,
@@ -25,8 +29,8 @@ function DriverList({ drivers, updateDriverList }) {
 
     return (
       <Popconfirm
-        title="Delete Driver"
-        description="Confirm Delete Driver?"
+        title="Delete Sub Con"
+        description="Confirm Delete Sub Con?"
         onConfirm={handleClick}
       >
         <Button danger size="small">
@@ -38,14 +42,14 @@ function DriverList({ drivers, updateDriverList }) {
 
   const handleDelete = (data) => {
     console.log(data);
-    deleteDoc(doc(db, "Bus Drivers", data.id))
+    deleteDoc(doc(db, "Sub Cons", data.id))
       .then(() => {
         message.success(data.id + " deleted successfully!");
-        updateDriverList();
+        updateSubConList();
       })
       .catch((error) => {
         console.log(error);
-        message.error("Failed to delete driver.");
+        message.error("Failed to delete Sub Con");
       });
   };
 
@@ -77,15 +81,15 @@ function DriverList({ drivers, updateDriverList }) {
         "Are you sure you want to Update this?"
       );
       if (confirmUpdate) {
-        updateDoc(doc(db, "Bus Drivers", id), updatedData).catch((error) => {
+        updateDoc(doc(db, "Sub Cons", id), updatedData).catch((error) => {
           console.log(error);
-          message.error("Failed to update driver.");
+          message.error("Failed to update sub con.");
         });
       }
     } catch (err) {
       message.error(err);
     }
-    updateDriverList();
+    updateSubConList();
   };
 
   const stringFormatter = (params) => {
@@ -97,16 +101,16 @@ function DriverList({ drivers, updateDriverList }) {
 
   const columnDefs = [
     {
-      headerName: "Bus Number",
-      field: "busNumber",
-      editable: false,
+      headerName: "Company Name",
+      field: "companyName",
       flex: 2,
     },
     {
-      headerName: "Driver Name",
-      field: "name",
-      flex: 4,
-    },
+        headerName: "Bus Number",
+        field: "busNumber",
+        editable: false,
+        flex: 2,
+      },
     {
       headerName: "Contact Number",
       field: "contactNumber",
@@ -115,26 +119,6 @@ function DriverList({ drivers, updateDriverList }) {
     {
       headerName: "Bus Size",
       field: "busSize",
-      flex: 2,
-    },
-    {
-      headerName: "Local",
-      field: "local",
-      maxWidth: 75,
-    },
-    {
-      headerName: "Minimum Salary",
-      field: "minSalary",
-      flex: 2,
-    },
-    {
-      headerName: "Normal Salary",
-      field: "normalSalary",
-      flex: 2,
-    },
-    {
-      headerName: "Peak Hour Salary",
-      field: "peakHourSalary",
       flex: 2,
     },
     {
@@ -158,7 +142,7 @@ function DriverList({ drivers, updateDriverList }) {
       style={{ height: "400px", width: "100%" }}
     >
       <AgGridReact
-        rowData={drivers}
+        rowData={subCons}
         columnDefs={columnDefs}
         defaultColDef={defaultColDef}
         onCellValueChanged={onCellValueChanged}
@@ -168,4 +152,4 @@ function DriverList({ drivers, updateDriverList }) {
   );
 }
 
-export default DriverList;
+export default SubConList;

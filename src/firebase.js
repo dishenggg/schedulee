@@ -6,9 +6,9 @@ const firebaseConfig = {
   apiKey: process.env.REACT_APP_APIKEY,
   authDomain: process.env.REACT_APP_AUTHDOMAIN,
   projectId: process.env.REACT_APP_PROJECTID,
-  storageBucket: "schedulee-4860e.appspot.com",
-  messagingSenderId: "115286191907",
-  appId: "1:115286191907:web:ebaf356710e9dc32f6a696",
+  storageBucket: "testing-server-ac4fc.appspot.com",
+  messagingSenderId: "517700197493",
+  appId: "1:517700197493:web:a93248a3432114bd54ac3c",
   measurementId: "G-245PGPG8N0",
 };
 
