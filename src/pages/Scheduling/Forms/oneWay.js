@@ -7,19 +7,25 @@ import {
   TimePicker,
   message,
   InputNumber,
-  Space,
 } from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
-import dayjs from "dayjs";
 import { addDoc, collection } from "firebase/firestore";
-import { ParseDateToFirestore } from "../../../utils/ParseTime";
+import {
+  ParseDateToFirestore,
+  ParseTimeToFirestore,
+} from "../../../utils/ParseTime";
+import dayjs from "dayjs";
 
 const OneWayForm = ({ setOpenModal }) => {
   const [value, setValue] = useState(null);
 
   const onChange = (time) => {
     setValue(time);
+  };
+
+  const disabledDate = (current) => {
+    return current < dayjs().startOf("day");
   };
 
   const handleSubmit = async (values) => {
@@ -38,15 +44,15 @@ const OneWayForm = ({ setOpenModal }) => {
         numberPax: values.numberPax,
         numberBus: values.numberBus,
         tripDescription: concatTrips,
-        tripDate: dayjs(values.date).toDate(),
-        startTime: dayjs(values.time).toDate(),
-        endTime: dayjs(values.time).toDate(),
+        startTime: ParseTimeToFirestore(values.time, values.date),
+        endTime: ParseTimeToFirestore(values.time, values.date),
       };
+      console.log(tripDetails);
       const tripRef = collection(db, "Dates", date, "trips");
       await addDoc(tripRef, tripDetails);
       message.success("Trip added successfully!");
       setOpenModal(false);
-      //window.location.reload(); // Refresh the page
+      window.location.reload(); // Refresh the page
     } catch (error) {
       message.error(error);
     }
@@ -64,7 +70,6 @@ const OneWayForm = ({ setOpenModal }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberPax: "1",
           numberBus: "1",
         }}
       >
@@ -92,7 +97,13 @@ const OneWayForm = ({ setOpenModal }) => {
         <Form.Item
           label="Contact Person Number"
           name="contactPersonPhoneNumber"
-          rules={[{ required: true }]}
+          rules={[
+            {
+              required: true,
+              pattern: /^[689]\d{7}$/,
+              message: "Check '${label}' Format",
+            },
+          ]}
         >
           <Input />
         </Form.Item>
@@ -110,13 +121,12 @@ const OneWayForm = ({ setOpenModal }) => {
         >
           <Input />
         </Form.Item>
-        <Space>
         <Form.Item
           label="Date (YYYY-MM-DD)"
           name="date"
           rules={[{ required: true }]}
         >
-          <DatePicker />
+          <DatePicker disabledDate={disabledDate} />
         </Form.Item>
         <Form.Item
           label="Time (HH:MM)"
@@ -131,8 +141,6 @@ const OneWayForm = ({ setOpenModal }) => {
             changeOnBlur={true}
           />
         </Form.Item>
-        </Space>
-        <Space>
         <Form.Item
           label="Number of Pax"
           name="numberPax"
@@ -155,7 +163,6 @@ const OneWayForm = ({ setOpenModal }) => {
         >
           <InputNumber min={1} step={1} />
         </Form.Item>
-        </Space>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit

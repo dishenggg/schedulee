@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { Space } from "antd";
 import SchedulingApp from "./SchedulingApp";
 import AddTrip from "./addTrip.js";
+import AddContract from "./addContract";
 
 const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -25,7 +27,10 @@ const Scheduling = () => {
           onChange={handleDateChange}
         />
       </div>
-      <AddTrip />
+      <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
+        <AddTrip />
+        <AddContract />
+      </Space>
       <SchedulingApp selectedDate={dateWithoutDashes} />
     </>
   );

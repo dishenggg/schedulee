@@ -37,7 +37,6 @@ const AddTrip = () => {
               { value: "1", label: "Standard 1-Way" },
               { value: "2", label: "Standard 2-Way" },
               { value: "3", label: "Disposal" },
-              { value: "4", label: "Tour" },
             ]}
           />
           <TripForm value={formValue} setOpenModal={setOpenModal} />

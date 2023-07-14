@@ -12,7 +12,10 @@ import { Title } from "../../../components/Typography/Title";
 import dayjs from "dayjs";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../../firebase";
-import { ParseDateToFirestore } from "../../../utils/ParseTime";
+import {
+  ParseTimeToFirestore,
+  ParseDateToFirestore,
+} from "../../../utils/ParseTime";
 
 const Disposal = ({ setOpenModal }) => {
   const [value, setValue] = useState(null);
@@ -21,11 +24,14 @@ const Disposal = ({ setOpenModal }) => {
     setValue(time);
   };
 
+  const disabledDate = (current) => {
+    return current < dayjs().startOf("day");
+  };
+
   const handleSubmit = async (values) => {
     try {
       const date = ParseDateToFirestore(values.date);
       const unassignedBus = "";
-      const concatTrips = values.tripDescription;
       const disposalTrip = "disposal";
       const tripDetails = {
         bus: unassignedBus,
@@ -36,17 +42,16 @@ const Disposal = ({ setOpenModal }) => {
         dropOffPoint: disposalTrip,
         numberPax: values.numberPax,
         numberBus: values.numberBus,
-        tripDescription: concatTrips,
-        tripDate: dayjs(values.date).toDate(),
-        startTime: dayjs(values.startTime).toDate(),
-        endTime: dayjs(values.endTime).toDate(),
+        tripDescription: values.tripDescription,
+        startTime: ParseTimeToFirestore(values.startTime, values.date),
+        endTime: ParseTimeToFirestore(values.endTime, values.date),
       };
-      console.log(tripDetails);
-      // const tripRef = collection(db, "Dates", date, "trips");
-      // await addDoc(tripRef, tripDetails);
-      // message.success("Trip added successfully!");
-      // setOpenModal(false);
-      //window.location.reload(); // Refresh the page
+      // console.log(tripDetails);
+      const tripRef = collection(db, "Dates", date, "trips");
+      await addDoc(tripRef, tripDetails);
+      message.success("Trip added successfully!");
+      setOpenModal(false);
+      window.location.reload(); // Refresh the page
     } catch (error) {
       message.error(error);
     }
@@ -64,7 +69,6 @@ const Disposal = ({ setOpenModal }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberPax: "1",
           numberBus: "1",
         }}
       >
@@ -92,7 +96,13 @@ const Disposal = ({ setOpenModal }) => {
         <Form.Item
           label="Contact Person Number"
           name="contactPersonPhoneNumber"
-          rules={[{ required: true }]}
+          rules={[
+            {
+              required: true,
+              pattern: /^[689]\d{7}$/,
+              message: "Check '${label}' Format",
+            },
+          ]}
         >
           <Input />
         </Form.Item>
@@ -108,7 +118,7 @@ const Disposal = ({ setOpenModal }) => {
           name="date"
           rules={[{ required: true }]}
         >
-          <DatePicker />
+          <DatePicker disabledDate={disabledDate} />
         </Form.Item>
         <Form.Item
           label="Start Time (HH:MM)"
