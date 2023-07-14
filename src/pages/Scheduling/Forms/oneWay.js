@@ -101,7 +101,7 @@ const OneWayForm = ({ setOpenModal }) => {
             {
               required: true,
               pattern: /^[689]\d{7}$/,
-              message: "Check `${label}` Format",
+              message: "Check '${label}' Format",
             },
           ]}
         >
