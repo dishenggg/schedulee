@@ -2,19 +2,10 @@ import React, { useState } from "react";
 import { Button, Modal, Upload, message, Table } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { db } from "../../../firebase";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  writeBatch,
-  collection,
-} from "firebase/firestore";
+import { setDoc, addDoc, writeBatch, collection } from "firebase/firestore";
 import Papa from "papaparse";
-import {
-  ParseTimeToAndFromFirestore,
-  ParseDateToFirestore,
-} from "../../../utils/ParseTime";
-new Date().setSeconds(0)
+import { ParseDateToFirestore } from "../../../utils/ParseTime";
+
 const AddMultipleTrips = () => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -224,12 +215,14 @@ const AddMultipleTrips = () => {
         delimiter: ",",
         header: false,
         skipEmptyLines: true,
+        dynamicTyping: false,
       }).data;
     } else if (fileType === "txt") {
       return Papa.parse(content, {
         delimiter: " ",
         header: false,
         skipEmptyLines: true,
+        dynamicTyping: false,
       }).data;
     } else {
       message.error("Unsupported file type.");
@@ -288,102 +281,104 @@ const AddMultipleTrips = () => {
   const onOk = async () => {
     const updatedData = [];
 
-    const postOneWay = async ({ type, ...row }) => {
-      const tripRef = collection(db, "Dates", row.tripDate, "trips");
+    const postOneWay = async ({ type, tripDate, ...row }) => {
+      const tripRef = collection(db, "Dates", tripDate, "trips");
       const concatTrips = `${row.pickUpPoint} --> ${row.dropOffPoint}`;
       const updatedValues = {
         ...row,
         endTime: row.startTime,
         tripDescription: concatTrips,
       };
-      console.log(updatedValues);
-      await setDoc(tripRef, updatedValues);
-      console.log("SET");
-      updatedData.push({ ...row, Type: type, status: "Success" });
+      await addDoc(tripRef, updatedValues);
     };
 
-    const postTwoWay = async ({ type, ...row }) => {
+    const postTwoWay = async ({ type, tripDate, ...row }) => {
       // post two OneWays
-      const tripRef = collection(db, "Dates", row.tripDate, "trips");
+      const tripRef = collection(db, "Dates", tripDate, "trips");
       const batch = writeBatch(db);
 
       const trip1 = { ...row };
       const trip2 = { ...row };
 
-      delete trip1.startTime2;
       trip2.startTime = trip2.startTime2;
-      delete trip2.startTime2;
 
-      batch.set(tripRef, trip1);
-      batch.set(tripRef, trip2);
+      const documentsToAdd = [trip1, trip2];
+
+      documentsToAdd.forEach((docData) => {
+        delete docData.startTime2;
+        const concatTrips = `${docData.pickUpPoint} --> ${docData.dropOffPoint}`;
+        docData.endTime = docData.startTime;
+        docData.tripDescription = concatTrips;
+
+        const newDoc = tripRef.doc();
+        console.log(docData);
+        batch.set(newDoc, docData);
+      });
 
       await batch.commit();
-      updatedData.push({ ...row, Type: type, status: "Success" });
     };
 
-    const postDisposal = async ({ type, ...row }) => {
-      const tripRef = collection(db, "Dates", row.tripDate, "trips");
+    const postDisposal = async ({ type, tripDate, ...row }) => {
+      const tripRef = collection(db, "Dates", tripDate, "trips");
       const updatedValues = {
         ...row,
       };
       await setDoc(tripRef, updatedValues);
-      updatedData.push({ ...row, Type: type, status: "Success" });
     };
 
     const prepRowForFirebase = (row) => {
-      const parseTime = (timeString) => {
-        const parts = timeString.split(":");
-        const datetimeObj = new Date();
-        datetimeObj.setHours(parts[0]);
-        datetimeObj.setMinutes(parts[1]);
-        return ParseTimeToAndFromFirestore(datetimeObj);
+      const parseTimeToDatetime = (datetimeObj, timeString) => {
+        const timeParts = timeString.split(":");
+        datetimeObj.setHours(timeParts[0]);
+        datetimeObj.setMinutes(timeParts[1]);
+        datetimeObj.setSeconds(0);
+        return datetimeObj;
       };
 
       const parseDate = (dateString) => {
-        const parts = dateString.split("/");
-        const day = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1; // Adjust month for zero-based index
-        const year = parseInt(parts[2]);
+        const dateParts = dateString.split("/");
+        const day = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1; // Adjust month for zero-based index
+        const year = parseInt(dateParts[2]);
         const date = new Date(year, month, day);
-        return ParseDateToFirestore(date);
+        return date;
       };
 
-      Object.entries(row).forEach(([key, value], index) => {
+      const rowCopy = { ...row };
+      const rowTripDatetime = parseDate(rowCopy.tripDate);
+      rowCopy.tripDate = ParseDateToFirestore(rowTripDatetime);
+      Object.entries(rowCopy).forEach(([key, value], index) => {
         if (key === "startTime" || key === "startTime2" || key === "endTime") {
-          row[key] = parseTime(value);
-        } else if (key === "tripDate") {
-          row[key] = parseDate(value);
+          rowCopy[key] = parseTimeToDatetime(rowTripDatetime, value);
         }
       });
-      return row;
+      return rowCopy;
     };
 
     setConfirmLoading(true);
 
-    const dataWithoutStatus = data.map(({ status, ...rest }) => rest); // Remove status for firebase
-    const DataForFirebase = dataWithoutStatus.map((row) =>
-      prepRowForFirebase(row)
-    );
-
-    const promises = DataForFirebase.map(async (row) => {
+    const promises = data.map(async ({ status, ...row }) => {
+      // Remove status for firebase
       try {
+        const firebaseData = prepRowForFirebase(row);
         if (row.type === "oneway") {
-          console.log("One way");
-          await postOneWay(row);
+          await postOneWay(firebaseData);
         } else if (row.type === "twoway") {
-          await postTwoWay(row);
+          await postTwoWay(firebaseData);
         } else if (row.type === "disposal") {
-          await postDisposal(row);
+          await postDisposal(firebaseData);
         } else {
-          return; // Invalid row
+          updatedData.push({ ...row, status: "Invalid Trip Type" });
         }
+        updatedData.push({ ...row, status: "Success" });
       } catch (error) {
         updatedData.push({ ...row, status: error.toString() });
       }
     });
     await Promise.all(promises);
     setData(updatedData);
-    //console.log(updatedData);
+    console.log("fin");
+    console.log(updatedData);
     //updateList();
     setConfirmLoading(false);
     setFormSubmitted(true);
