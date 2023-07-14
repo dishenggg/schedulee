@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import { Button, Modal, Upload, message, Table } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { db } from "../../../firebase";
-import { setDoc, addDoc, writeBatch, collection } from "firebase/firestore";
+import {
+  setDoc,
+  addDoc,
+  writeBatch,
+  collection,
+  doc,
+} from "firebase/firestore";
 import Papa from "papaparse";
 import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
@@ -215,14 +221,12 @@ const AddMultipleTrips = () => {
         delimiter: ",",
         header: false,
         skipEmptyLines: true,
-        dynamicTyping: false,
       }).data;
     } else if (fileType === "txt") {
       return Papa.parse(content, {
         delimiter: " ",
         header: false,
         skipEmptyLines: true,
-        dynamicTyping: false,
       }).data;
     } else {
       message.error("Unsupported file type.");
@@ -234,7 +238,7 @@ const AddMultipleTrips = () => {
     const res = parsedRows.map((row, i) => {
       const trip = {};
       var currentIndex;
-      trip["key"] = i;
+      //trip["key"] = i;
       if (row[0] === "oneway") {
         currentIndex = oneWayIndex;
       } else if (row[0] === "twoway") {
@@ -310,9 +314,8 @@ const AddMultipleTrips = () => {
         docData.endTime = docData.startTime;
         docData.tripDescription = concatTrips;
 
-        const newDoc = tripRef.doc();
-        console.log(docData);
-        batch.set(newDoc, docData);
+        const newDocRef = doc(tripRef);
+        batch.set(newDocRef, docData);
       });
 
       await batch.commit();
@@ -349,7 +352,7 @@ const AddMultipleTrips = () => {
       rowCopy.tripDate = ParseDateToFirestore(rowTripDatetime);
       Object.entries(rowCopy).forEach(([key, value], index) => {
         if (key === "startTime" || key === "startTime2" || key === "endTime") {
-          rowCopy[key] = parseTimeToDatetime(rowTripDatetime, value);
+          rowCopy[key] = parseTimeToDatetime(new Date(rowTripDatetime), value);
         }
       });
       return rowCopy;
@@ -377,8 +380,6 @@ const AddMultipleTrips = () => {
     });
     await Promise.all(promises);
     setData(updatedData);
-    console.log("fin");
-    console.log(updatedData);
     //updateList();
     setConfirmLoading(false);
     setFormSubmitted(true);
