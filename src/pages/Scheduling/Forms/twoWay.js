@@ -15,12 +15,18 @@ import {
   ParseDateToFirestore,
   ParseTimeToFirestore,
 } from "../../../utils/ParseTime";
+import dayjs from "dayjs";
 
 const TwoWayForm = ({ setOpenModal }) => {
   const [value, setValue] = useState(null);
 
   const onChange = (time) => {
     setValue(time);
+  };
+
+  const disabledDate = (current) => {
+    // Can not select days before today
+    return current < dayjs().startOf("day");
   };
 
   const handleSubmit = async (values) => {
@@ -83,6 +89,9 @@ const TwoWayForm = ({ setOpenModal }) => {
         onFinish={handleSubmit}
         onFinishFailed={onFinishFailed}
         layout="vertical"
+        initialValues={{
+          numberBus: "1",
+        }}
       >
         <Form.Item
           label="Customer Name"
@@ -106,9 +115,15 @@ const TwoWayForm = ({ setOpenModal }) => {
           <Input />
         </Form.Item>
         <Form.Item
-          label="Contact Person Phone Number"
+          label="Contact Person Number"
           name="contactPersonPhoneNumber"
-          rules={[{ required: true }]}
+          rules={[
+            {
+              required: true,
+              pattern: /^[689]\d{7}$/,
+              message: "Check '${label}' Format",
+            },
+          ]}
         >
           <Input />
         </Form.Item>
@@ -131,12 +146,16 @@ const TwoWayForm = ({ setOpenModal }) => {
           name="date"
           rules={[{ required: true }]}
         >
-          <DatePicker />
+          <DatePicker disabledDate={disabledDate} />
         </Form.Item>
         <Form.Item
           label="Pick Up Time (HH:MM)"
           name="time"
-          rules={[{ required: true }]}
+          rules={[
+            {
+              required: true,
+            },
+          ]}
         >
           <TimePicker
             format={"HH:mm"}

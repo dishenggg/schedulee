@@ -15,12 +15,17 @@ import {
   ParseDateToFirestore,
   ParseTimeToFirestore,
 } from "../../../utils/ParseTime";
+import dayjs from "dayjs";
 
 const OneWayForm = ({ setOpenModal }) => {
   const [value, setValue] = useState(null);
 
   const onChange = (time) => {
     setValue(time);
+  };
+
+  const disabledDate = (current) => {
+    return current < dayjs().startOf("day");
   };
 
   const handleSubmit = async (values) => {
@@ -65,7 +70,6 @@ const OneWayForm = ({ setOpenModal }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberPax: "1",
           numberBus: "1",
         }}
       >
@@ -93,7 +97,13 @@ const OneWayForm = ({ setOpenModal }) => {
         <Form.Item
           label="Contact Person Number"
           name="contactPersonPhoneNumber"
-          rules={[{ required: true }]}
+          rules={[
+            {
+              required: true,
+              pattern: /^[689]\d{7}$/,
+              message: "Check '${label}' Format",
+            },
+          ]}
         >
           <Input />
         </Form.Item>
@@ -116,7 +126,7 @@ const OneWayForm = ({ setOpenModal }) => {
           name="date"
           rules={[{ required: true }]}
         >
-          <DatePicker />
+          <DatePicker disabledDate={disabledDate} />
         </Form.Item>
         <Form.Item
           label="Time (HH:MM)"
