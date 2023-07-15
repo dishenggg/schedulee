@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, Modal, Upload, message, Table } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, FileAddOutlined } from "@ant-design/icons";
 import { db } from "../../../firebase";
 import {
   setDoc,
@@ -389,6 +389,7 @@ const AddMultipleTrips = () => {
     <>
       <Button
         type="primary"
+        icon={<FileAddOutlined />}
         onClick={() => {
           setOpenModal(true);
         }}

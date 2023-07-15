@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, Modal, Select } from "antd";
 import { TripForm } from "./forms.js";
+import { PlusCircleOutlined } from "@ant-design/icons";
 
 const AddTrip = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -14,6 +15,7 @@ const AddTrip = () => {
     <div>
       <Button
         type="primary"
+        icon={<PlusCircleOutlined />}
         onClick={() => {
           setOpenModal(true);
         }}
