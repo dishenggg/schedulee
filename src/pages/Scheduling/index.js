@@ -21,7 +21,6 @@ const Scheduling = () => {
   return (
     <>
       <Title>Scheduling Page</Title>
-      <AddMultipleTrips />
       <div>
         <label>Date selected:</label>
         <input
@@ -33,6 +32,7 @@ const Scheduling = () => {
       </div>
       <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
         <AddTrip />
+        <AddMultipleTrips />
         <AddContract />
       </Space>
       <SchedulingApp selectedDate={dateWithoutDashes} />

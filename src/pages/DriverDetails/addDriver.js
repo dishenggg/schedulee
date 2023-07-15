@@ -2,6 +2,7 @@ import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import { Button, Modal, Form, Input, InputNumber, Radio, message } from "antd";
+import { UserAddOutlined } from "@ant-design/icons";
 
 const AddDriver = ({ updateDriverList }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -42,6 +43,7 @@ const AddDriver = ({ updateDriverList }) => {
     <div>
       <Button
         type="primary"
+        icon={<UserAddOutlined />}
         onClick={() => {
           setOpenModal(true);
         }}
