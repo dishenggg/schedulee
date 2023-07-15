@@ -304,7 +304,10 @@ const AddMultipleTrips = () => {
       const trip1 = { ...row };
       const trip2 = { ...row };
 
-      trip2.startTime = trip2.startTime2;
+      trip2.startTime = trip2.startTime2; // Set start time of return trip
+      const temp = trip2.pickUpPoint // Swap pickup point and dropoff point
+      trip2.pickUpPoint = trip2.dropOffPoint
+      trip2.dropOffPoint = temp
 
       const documentsToAdd = [trip1, trip2];
 
