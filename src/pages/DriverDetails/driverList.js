@@ -142,6 +142,11 @@ function DriverList({ drivers, updateDriverList }) {
       flex: 2,
     },
     {
+      headerName: "Remarks",
+      field: "remarks",
+      flex: 2,
+    },
+    {
       headerName: "Delete",
       field: "delete",
       editable: false,
