@@ -37,15 +37,13 @@ function DriverList({ drivers, updateDriverList }) {
   };
 
   const handleDelete = (data) => {
-    console.log(data);
     deleteDoc(doc(db, "Bus Drivers", data.id))
       .then(() => {
         message.success(data.id + " deleted successfully!");
         updateDriverList();
       })
       .catch((error) => {
-        console.log(error);
-        message.error("Failed to delete driver.");
+        message.error("Failed to delete driver: " + error);
       });
   };
 
@@ -70,7 +68,6 @@ function DriverList({ drivers, updateDriverList }) {
 
   const onCellValueChanged = (params) => {
     const { id, ...updatedData } = params.data;
-    console.log(updatedData);
     try {
       validateRow(updatedData);
       const confirmUpdate = window.confirm(
@@ -82,8 +79,7 @@ function DriverList({ drivers, updateDriverList }) {
             message.success("Successfully Updated");
           })
           .catch((error) => {
-            console.log(error);
-            message.error("Failed to update driver.");
+            message.error("Failed to update driver: " + error);
           });
       }
     } catch (err) {
