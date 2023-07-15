@@ -7,9 +7,14 @@ import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { Title } from "../../components/Typography/Title";
 import { ParseTimeFromFirestoreToString } from "../../utils/ParseTime";
 
-export default function SchedulingApp({ selectedDate, editable }) {
+export default function SchedulingApp({
+  selectedDate,
+  editable,
+  listOfTripsByDriver,
+  updateListOfTripsByDriver,
+}) {
   const unscheduledTrips = "Unscheduled Trips";
-  const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
+
   const [driverDetails, setDriverDetails] = useState({});
   const gridRefs = useRef({});
 
@@ -22,25 +27,6 @@ export default function SchedulingApp({ selectedDate, editable }) {
         res[row.busNumber] = { ...row };
       });
     setDriverDetails(res);
-  };
-  const populateListOfTripsByDriver = async () => {
-    const driverQuery = await getDocs(collection(db, "Bus Drivers"));
-    const drivers = driverQuery.docs.map((doc) => doc.id);
-    const tripsQuery = await getDocs(
-      collection(db, "Dates", selectedDate, "trips")
-    );
-    const trips = tripsQuery.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    const res = {};
-    res[unscheduledTrips] = trips.filter(
-      (trip) => trip.bus === "" || trip.bus === null
-    );
-    drivers.forEach((driverId) => {
-      res[driverId] = trips.filter((trip) => trip.bus === driverId);
-    });
-    setListOfTripsByDriver(res);
   };
 
   const getRowId = (params) => params.data.id;
@@ -84,17 +70,12 @@ export default function SchedulingApp({ selectedDate, editable }) {
         bus: driverId,
       });
     }
-    populateListOfTripsByDriver();
+    updateListOfTripsByDriver();
   };
 
   useEffect(() => {
-    populateListOfTripsByDriver();
     populateDriverDetails();
   }, []);
-
-  useEffect(() => {
-    populateListOfTripsByDriver();
-  }, [selectedDate]);
 
   const generateGrid = (driverId) => {
     const driverTrips = listOfTripsByDriver[driverId] || [];

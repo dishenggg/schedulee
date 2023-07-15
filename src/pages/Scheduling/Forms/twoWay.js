@@ -17,7 +17,7 @@ import {
 } from "../../../utils/ParseTime";
 import dayjs from "dayjs";
 
-const TwoWayForm = ({ setOpenModal }) => {
+const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [value, setValue] = useState(null);
 
   const onChange = (time) => {
@@ -70,11 +70,11 @@ const TwoWayForm = ({ setOpenModal }) => {
         addDoc(tripRef, tripDetails1),
         addDoc(tripRef, tripDetails2),
       ]);
+      updateListOfTripsByDriver();
       message.success("Trip added successfully!");
       setOpenModal(false);
-      window.location.reload(); // Refresh the page
     } catch (error) {
-      message.error(error);
+      message.error(error.toString());
     }
   };
 

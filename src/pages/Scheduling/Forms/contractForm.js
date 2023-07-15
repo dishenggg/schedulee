@@ -17,7 +17,7 @@ import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
 const { Option } = Select;
 
-const ContractForm = ({ setOpenModal }) => {
+const ContractForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [form] = Form.useForm();
   const [value, setValue] = useState(null);
   const [recurringTrips, setRecurringTrips] = useState([]);
@@ -73,11 +73,11 @@ const ContractForm = ({ setOpenModal }) => {
       };
       const tripRef = collection(db, "Contracts");
       await addDoc(tripRef, tripDetails);
+      updateListOfTripsByDriver();
       message.success("Contract added successfully!");
       setOpenModal(false);
-      //window.location.reload(); // Refresh the page
     } catch (error) {
-      message.error(error);
+      message.error(error.toString());
     }
   };
 

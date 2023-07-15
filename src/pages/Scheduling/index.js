@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Space } from "antd";
 import SchedulingApp from "./SchedulingApp";
-import { Form } from "./forms.js";
 import AddMultipleTrips from "./Forms/addMultipleTrips";
 import { Title } from "../../components/Typography/Title";
 import AddTrip from "./addTrip.js";
 import AddContract from "./addContract";
+import { db } from "../../firebase";
+import { collection, getDocs } from "firebase/firestore";
+import { ParseDateToFirestore } from "../../utils/ParseTime";
 
 const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editable, setEditable] = useState(true);
+  const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
 
   const handleDateChange = (event) => {
     const selectedDate = new Date(event.target.value);
@@ -28,6 +31,35 @@ const Scheduling = () => {
   const formattedDate = selectedDate.toLocaleDateString("en-GB");
   const dateWithoutDashes = formattedDate.replace(/\//g, "");
 
+  const populateListOfTripsByDriver = async () => {
+    const driverQuery = await getDocs(collection(db, "Bus Drivers"));
+    const drivers = driverQuery.docs.map((doc) => doc.id);
+    const tripsQuery = await getDocs(
+      collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips")
+    );
+    const trips = tripsQuery.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const res = {};
+    res["Unscheduled Trips"] = trips.filter(
+      (trip) => trip.bus === "" || trip.bus === null
+    );
+    drivers.forEach((driverId) => {
+      res[driverId] = trips.filter((trip) => trip.bus === driverId);
+    });
+    setListOfTripsByDriver(res);
+  };
+
+  const updateListOfTripsByDriver = () => {
+    populateListOfTripsByDriver();
+  };
+
+  useEffect(() => {
+    populateListOfTripsByDriver();
+  }, [selectedDate]);
+
   return (
     <>
       <Title>Scheduling Page</Title>
@@ -41,11 +73,18 @@ const Scheduling = () => {
         />
       </div>
       <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-        <AddTrip />
-        <AddMultipleTrips />
-        <AddContract />
+        <AddTrip updateListOfTripsByDriver={updateListOfTripsByDriver} />
+        <AddMultipleTrips
+          updateListOfTripsByDriver={updateListOfTripsByDriver}
+        />
+        <AddContract updateListOfTripsByDriver={updateListOfTripsByDriver} />
       </Space>
-      <SchedulingApp selectedDate={dateWithoutDashes} editable={editable} />
+      <SchedulingApp
+        selectedDate={dateWithoutDashes}
+        editable={editable}
+        listOfTripsByDriver={listOfTripsByDriver}
+        updateListOfTripsByDriver={updateListOfTripsByDriver}
+      />
     </>
   );
 };
