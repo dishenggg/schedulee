@@ -7,9 +7,9 @@ export function ParseDateToFirestore(datetime) {
 }
 
 export function ParseDateFromFirestore(formattedString) {
-  const day = formattedString.substr(0, 2);
-  const month = formattedString.substr(2, 3);
-  const year = formattedString.substr(4, 8);
+  const day = formattedString.substring(0, 2);
+  const month = formattedString.substring(2, 4);
+  const year = formattedString.substring(4, 8);
   return new Date(`${month}/${day}/${year}`);
 }
 
@@ -21,8 +21,21 @@ export function ParseTimeToFirestore(time, date) {
   return formattedDate.toDate();
 }
 
+export function ParseTimeFromFirestore(datetime) {
+  const dateTime = dayjs.unix(datetime.seconds);
+  return dateTime;
+}
+
 export function ParseTimeFromFirestoreToString(datetime) {
   const dateTime = dayjs.unix(datetime.seconds);
   const timeString = dateTime.format("HH:mm");
   return timeString;
+}
+
+export function parseDateTimeFromStringToFireStore(timeString, dateString) {
+  console.log(dayjs(ParseDateFromFirestore(dateString)));
+  const date = dayjs(ParseDateFromFirestore(dateString))
+    .hour(parseInt(timeString.substring(0, 2)))
+    .minute(parseInt(timeString.substring(3, 5)));
+  return date;
 }

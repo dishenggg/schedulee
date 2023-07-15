@@ -5,7 +5,12 @@ import { useEffect, useState, useRef } from "react";
 import { db } from "../../firebase";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { Title } from "../../components/Typography/Title";
-import { ParseTimeFromFirestoreToString } from "../../utils/ParseTime";
+import {
+  ParseTimeFromFirestoreToString,
+  parseDateTimeFromStringToFireStore,
+  ParseTimeFromFirestore,
+} from "../../utils/ParseTime";
+import { message } from "antd";
 
 export default function SchedulingApp({
   selectedDate,
@@ -59,6 +64,25 @@ export default function SchedulingApp({
     const rowAlreadyInGrid = !!gridApi.getRowNode(data.id);
     if (rowAlreadyInGrid) {
       return;
+    }
+
+    // do nothing if it clashes
+    if (driverId !== unscheduledTrips) {
+      const newTripDT = parseDateTimeFromStringToFireStore(
+        data.startTime,
+        selectedDate
+      );
+      for (const trip of listOfTripsByDriver[driverId]) {
+        const tripDT = ParseTimeFromFirestore(trip.startTime);
+        const diffInMinutes = tripDT.diff(newTripDT, "minute");
+        console.log(diffInMinutes);
+        if (diffInMinutes >= -15 && diffInMinutes <= 15) {
+          message.error(
+            `${driverId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
+          );
+          return;
+        }
+      }
     }
 
     if (driverId === unscheduledTrips) {
