@@ -3,13 +3,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useEffect, useState, useRef } from "react";
 import { db } from "../../firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  getDoc,
-} from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { Title } from "../../components/Typography/Title";
 import { ParseTimeFromFirestoreToString } from "../../utils/ParseTime";
 
@@ -113,7 +107,6 @@ export default function SchedulingApp({ selectedDate, editable }) {
       return row;
     });
 
-    //({busSize}) {phoneNumber} {remarks}
     var busSize = "";
     var contactNumber = "";
     var remarks = "";
@@ -128,7 +121,7 @@ export default function SchedulingApp({ selectedDate, editable }) {
     return (
       <>
         <Title level={4}>
-          {driverId}({busSize}) {contactNumber} {remarks}
+          {driverId} ({busSize}) HP: {contactNumber} {remarks}
         </Title>
         <div
           className={
@@ -190,7 +183,6 @@ export default function SchedulingApp({ selectedDate, editable }) {
         }}
       >
         {Object.keys(listOfTripsByDriver).map((driverId, i) => {
-          var pos;
           if (driverId === "Unscheduled Trips") {
             return;
           }
