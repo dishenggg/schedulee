@@ -14,12 +14,10 @@ export function ParseDateFromFirestore(formattedString) {
 }
 
 export function ParseTimeToFirestore(time, date) {
-  const formattedDate = dayjs(date).set({
-    hour: dayjs(time).get("hour"),
-    minute: dayjs(time).get("minute"),
-    second: 0,
-  });
-
+  const formattedDate = dayjs(date)
+    .hour(dayjs(time).get("hour"))
+    .minute(dayjs(time).get("minute"))
+    .second(0);
   return formattedDate.toDate();
 }
 

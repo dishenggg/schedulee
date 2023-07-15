@@ -6,7 +6,7 @@ import { Title } from "../../components/Typography/Title";
 import AddTrip from "./addTrip.js";
 import AddContract from "./addContract";
 import { db } from "../../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, orderBy } from "firebase/firestore";
 import { ParseDateToFirestore } from "../../utils/ParseTime";
 
 const Scheduling = () => {
@@ -16,7 +16,7 @@ const Scheduling = () => {
 
   const handleDateChange = (event) => {
     const selectedDate = new Date(event.target.value);
-    selectedDate.setHours(0, 0, 0, 0);
+    //selectedDate.setHours(0, 0, 0, 0);
     setSelectedDate(selectedDate);
 
     const currentDate = new Date();
@@ -35,7 +35,8 @@ const Scheduling = () => {
     const driverQuery = await getDocs(collection(db, "Bus Drivers"));
     const drivers = driverQuery.docs.map((doc) => doc.id);
     const tripsQuery = await getDocs(
-      collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips")
+      collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips"),
+      orderBy("startTime")
     );
     const trips = tripsQuery.docs.map((doc) => ({
       id: doc.id,
@@ -43,12 +44,15 @@ const Scheduling = () => {
     }));
 
     const res = {};
-    res["Unscheduled Trips"] = trips.filter(
-      (trip) => trip.bus === "" || trip.bus === null
-    );
+    res["Unscheduled Trips"] = trips
+      .filter((trip) => trip.bus === "" || trip.bus === null)
+      .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
     drivers.forEach((driverId) => {
-      res[driverId] = trips.filter((trip) => trip.bus === driverId);
+      res[driverId] = trips
+        .filter((trip) => trip.bus === driverId)
+        .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
     });
+    console.log(res);
     setListOfTripsByDriver(res);
   };
 
