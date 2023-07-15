@@ -17,7 +17,7 @@ import {
 } from "../../../utils/ParseTime";
 import dayjs from "dayjs";
 
-const OneWayForm = ({ setOpenModal }) => {
+const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [value, setValue] = useState(null);
 
   const onChange = (time) => {
@@ -50,11 +50,11 @@ const OneWayForm = ({ setOpenModal }) => {
       console.log(tripDetails);
       const tripRef = collection(db, "Dates", date, "trips");
       await addDoc(tripRef, tripDetails);
+      updateListOfTripsByDriver();
       message.success("Trip added successfully!");
       setOpenModal(false);
-      window.location.reload(); // Refresh the page
     } catch (error) {
-      message.error(error);
+      message.error(error.toString());
     }
   };
 

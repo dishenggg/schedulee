@@ -12,7 +12,7 @@ import {
 import Papa from "papaparse";
 import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
-const AddMultipleTrips = () => {
+const AddMultipleTrips = ({ updateListOfTripsByDriver }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -380,7 +380,7 @@ const AddMultipleTrips = () => {
     });
     await Promise.all(promises);
     setData(updatedData);
-    //updateList();
+    updateListOfTripsByDriver();
     setConfirmLoading(false);
     setFormSubmitted(true);
   };
