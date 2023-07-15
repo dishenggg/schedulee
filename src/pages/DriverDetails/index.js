@@ -53,7 +53,7 @@ const DriverDetails = () => {
         <AddDriver updateDriverList={updateDriverList} />
         <AddMultipleDrivers updateDriverList={updateDriverList} />
       </Space>
-      <DriverList drivers={drivers} updateList={updateDriverList} />
+      <DriverList drivers={drivers} updateDriverList={updateDriverList} />
       <Title level={2}>Sub Con </Title>
       <Space style={{ marginBottom: "0.5rem" }}>
         <AddSubCon updateSubConList={updateSubConList} />

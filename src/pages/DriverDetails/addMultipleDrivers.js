@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Button, Modal, Upload, message, Table } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, UsergroupAddOutlined } from "@ant-design/icons";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import Papa from "papaparse";
 
-const AddMultipleDrivers = ({ updateList }) => {
+const AddMultipleDrivers = ({ updateDriverList }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -25,8 +25,8 @@ const AddMultipleDrivers = ({ updateList }) => {
       dataIndex: "contactNumber",
     },
     {
-      title: "IC Number",
-      dataIndex: "icNumber",
+      title: "Bus Size",
+      dataIndex: "busSize",
     },
     {
       title: "Local",
@@ -81,10 +81,11 @@ const AddMultipleDrivers = ({ updateList }) => {
       const fileType = file.name.split(".").pop().toLowerCase();
       reader.onload = (e) => {
         const content = e.target.result;
-        const parsedRows = parseContent(content, fileType);
+        const parsedRows = parseContent(content, fileType).slice(1); // Skip first row for headers
+        console.log(parsedRows)
         const driverData = parsedRows.map((row, i) => {
           const driver = {};
-          driver["key"] = i;
+          //driver["key"] = i;
           dataIndex.forEach((header, index) => {
             if (/salary/i.test(header)) {
               driver[header] = parseFloat(row[index]);
@@ -132,12 +133,12 @@ const AddMultipleDrivers = ({ updateList }) => {
           updatedData.push({ ...row, busNumber, status: "Success" });
         }
       } catch (error) {
-        updatedData.push({ ...row, status: error });
+        updatedData.push({ ...row, status: error.toString() });
       }
     });
     await Promise.all(promises);
     setData(updatedData);
-    updateList();
+    updateDriverList();
     setConfirmLoading(false);
     setFormSubmitted(true);
   };
@@ -146,6 +147,7 @@ const AddMultipleDrivers = ({ updateList }) => {
     <>
       <Button
         type="primary"
+        icon = {<UsergroupAddOutlined />}
         onClick={() => {
           setOpenModal(true);
         }}
