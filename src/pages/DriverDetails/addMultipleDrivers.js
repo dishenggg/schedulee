@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, Modal, Upload, message, Table } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, UsergroupAddOutlined } from "@ant-design/icons";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import Papa from "papaparse";
@@ -146,6 +146,7 @@ const AddMultipleDrivers = ({ updateList }) => {
     <>
       <Button
         type="primary"
+        icon = {<UsergroupAddOutlined />}
         onClick={() => {
           setOpenModal(true);
         }}
