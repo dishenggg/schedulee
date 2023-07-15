@@ -16,7 +16,7 @@ const Scheduling = () => {
 
   const handleDateChange = (event) => {
     const selectedDate = new Date(event.target.value);
-    selectedDate.setHours(0, 0, 0, 0);
+    //selectedDate.setHours(0, 0, 0, 0);
     setSelectedDate(selectedDate);
 
     const currentDate = new Date();
