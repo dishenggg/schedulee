@@ -33,6 +33,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
       const date = ParseDateToFirestore(values.date);
       const unassignedBus = "";
       const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
+      const parsedTime = ParseTimeToFirestore(values.time, values.date);
       const tripDetails = {
         bus: unassignedBus,
         customerName: values.customerName,
@@ -44,8 +45,8 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         numberPax: values.numberPax,
         numberBus: values.numberBus,
         tripDescription: concatTrips,
-        startTime: ParseTimeToFirestore(values.time, values.date),
-        endTime: ParseTimeToFirestore(values.time, values.date),
+        startTime: parsedTime,
+        endTime: parsedTime,
       };
       console.log(tripDetails);
       const tripRef = collection(db, "Dates", date, "trips");
