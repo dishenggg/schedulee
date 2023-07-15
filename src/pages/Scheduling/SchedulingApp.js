@@ -11,6 +11,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { Title } from "../../components/Typography/Title";
+import { ParseTimeFromFirestoreToString } from "../../utils/ParseTime";
 
 export default function SchedulingApp({ selectedDate, editable }) {
   const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
@@ -101,7 +102,17 @@ export default function SchedulingApp({ selectedDate, editable }) {
   }, [selectedDate]);
 
   const generateGrid = (driverId) => {
-    const driverTripData = listOfTripsByDriver[driverId] || [];
+    const driverTrips = listOfTripsByDriver[driverId] || [];
+    const driverTripData = JSON.parse(JSON.stringify(driverTrips)); // Deep copy as reacts somehow calls generateGrid twice
+
+    driverTripData.map((row) => {
+      row.startTime = ParseTimeFromFirestoreToString(row.startTime);
+      if (row.startTime2) {
+        row.startTime2 = ParseTimeFromFirestoreToString(row.startTime2);
+      }
+      return row;
+    });
+
     //({busSize}) {phoneNumber} {remarks}
     var busSize = "";
     var contactNumber = "";
@@ -137,8 +148,8 @@ export default function SchedulingApp({ selectedDate, editable }) {
                 dndSource: editable,
               },
               {
-                headerName: "Description",
-                field: "description",
+                headerName: "Trip Description",
+                field: "tripDescription",
               },
             ]}
             rowData={driverTripData}

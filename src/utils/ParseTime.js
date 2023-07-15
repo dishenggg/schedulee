@@ -22,3 +22,9 @@ export function ParseTimeToFirestore(time, date) {
 
   return formattedDate.toDate();
 }
+
+export function ParseTimeFromFirestoreToString(datetime) {
+  const dateTime = dayjs.unix(datetime.seconds);
+  const timeString = dateTime.format("HH:mm");
+  return timeString;
+}
