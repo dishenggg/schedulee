@@ -8,6 +8,7 @@ import { Title } from "../../components/Typography/Title";
 import { ParseTimeFromFirestoreToString } from "../../utils/ParseTime";
 
 export default function SchedulingApp({ selectedDate, editable }) {
+  const unscheduledTrips = "Unscheduled Trips";
   const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
   const [driverDetails, setDriverDetails] = useState({});
   const gridRefs = useRef({});
@@ -33,7 +34,7 @@ export default function SchedulingApp({ selectedDate, editable }) {
       ...doc.data(),
     }));
     const res = {};
-    res["Unscheduled Trips"] = trips.filter(
+    res[unscheduledTrips] = trips.filter(
       (trip) => trip.bus === "" || trip.bus === null
     );
     drivers.forEach((driverId) => {
@@ -74,7 +75,7 @@ export default function SchedulingApp({ selectedDate, editable }) {
       return;
     }
 
-    if (driverId === "Unscheduled Trips") {
+    if (driverId === unscheduledTrips) {
       await updateDoc(doc(db, "Dates", selectedDate, "trips", data.id), {
         bus: "",
       });
@@ -112,7 +113,7 @@ export default function SchedulingApp({ selectedDate, editable }) {
     var remarks = "";
     const driverObj = driverDetails[driverId];
     const driverData = { ...driverObj }; // it doesnt work without this i dont know why
-    if (driverId !== "Unscheduled Trips") {
+    if (driverId !== unscheduledTrips) {
       busSize = driverData["busSize"];
       contactNumber = driverData["contactNumber"];
       remarks = driverData["remarks"];
@@ -121,7 +122,9 @@ export default function SchedulingApp({ selectedDate, editable }) {
     return (
       <>
         <Title level={4}>
-          {driverId} ({busSize}) HP: {contactNumber} {remarks}
+          {driverId === unscheduledTrips
+            ? `${driverId}`
+            : `${driverId} (${busSize}) HP: ${contactNumber} ${remarks}`}
         </Title>
         <div
           className={
@@ -171,7 +174,7 @@ export default function SchedulingApp({ selectedDate, editable }) {
           marginLeft: "20px",
         }}
       >
-        {generateGrid("Unscheduled Trips")}
+        {generateGrid(unscheduledTrips)}
       </div>
       <div
         className="driver-tables-container"
@@ -183,7 +186,7 @@ export default function SchedulingApp({ selectedDate, editable }) {
         }}
       >
         {Object.keys(listOfTripsByDriver).map((driverId, i) => {
-          if (driverId === "Unscheduled Trips") {
+          if (driverId === unscheduledTrips) {
             return;
           }
           return (
