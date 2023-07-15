@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Space } from "antd";
 import SchedulingApp from "./SchedulingApp";
+import { Form } from "./forms.js";
+import AddMultipleTrips from "./Forms/addMultipleTrips";
+import { Title } from "../../components/Typography/Title";
 import AddTrip from "./addTrip.js";
 import AddContract from "./addContract";
 
@@ -17,7 +20,8 @@ const Scheduling = () => {
 
   return (
     <>
-      <h1>Scheduling Page</h1>
+      <Title>Scheduling Page</Title>
+      <AddMultipleTrips />
       <div>
         <label>Date selected:</label>
         <input

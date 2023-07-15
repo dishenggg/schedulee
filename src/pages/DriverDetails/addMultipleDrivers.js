@@ -25,8 +25,8 @@ const AddMultipleDrivers = ({ updateList }) => {
       dataIndex: "contactNumber",
     },
     {
-      title: "IC Number",
-      dataIndex: "icNumber",
+      title: "Bus Size",
+      dataIndex: "busSize",
     },
     {
       title: "Local",
@@ -81,7 +81,7 @@ const AddMultipleDrivers = ({ updateList }) => {
       const fileType = file.name.split(".").pop().toLowerCase();
       reader.onload = (e) => {
         const content = e.target.result;
-        const parsedRows = parseContent(content, fileType);
+        const parsedRows = parseContent(content, fileType).slice(1);
         const driverData = parsedRows.map((row, i) => {
           const driver = {};
           driver["key"] = i;
@@ -132,7 +132,7 @@ const AddMultipleDrivers = ({ updateList }) => {
           updatedData.push({ ...row, busNumber, status: "Success" });
         }
       } catch (error) {
-        updatedData.push({ ...row, status: error });
+        updatedData.push({ ...row, status: error.toString() });
       }
     });
     await Promise.all(promises);
