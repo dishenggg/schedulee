@@ -9,10 +9,20 @@ import AddContract from "./addContract";
 
 const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [editable, setEditable] = useState(true);
 
   const handleDateChange = (event) => {
     const selectedDate = new Date(event.target.value);
+    selectedDate.setHours(0, 0, 0, 0);
     setSelectedDate(selectedDate);
+
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    if (selectedDate < currentDate) {
+      setEditable(false);
+    } else {
+      setEditable(true);
+    }
   };
 
   const formattedDate = selectedDate.toLocaleDateString("en-GB");
@@ -35,7 +45,7 @@ const Scheduling = () => {
         <AddMultipleTrips />
         <AddContract />
       </Space>
-      <SchedulingApp selectedDate={dateWithoutDashes} />
+      <SchedulingApp selectedDate={dateWithoutDashes} editable={editable} />
     </>
   );
 };

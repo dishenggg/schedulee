@@ -5,7 +5,7 @@ import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import Papa from "papaparse";
 
-const AddMultipleDrivers = ({ updateList }) => {
+const AddMultipleDrivers = ({ updateDriverList }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -81,10 +81,11 @@ const AddMultipleDrivers = ({ updateList }) => {
       const fileType = file.name.split(".").pop().toLowerCase();
       reader.onload = (e) => {
         const content = e.target.result;
-        const parsedRows = parseContent(content, fileType).slice(1);
+        const parsedRows = parseContent(content, fileType).slice(1); // Skip first row for headers
+        console.log(parsedRows)
         const driverData = parsedRows.map((row, i) => {
           const driver = {};
-          driver["key"] = i;
+          //driver["key"] = i;
           dataIndex.forEach((header, index) => {
             if (/salary/i.test(header)) {
               driver[header] = parseFloat(row[index]);
@@ -137,7 +138,7 @@ const AddMultipleDrivers = ({ updateList }) => {
     });
     await Promise.all(promises);
     setData(updatedData);
-    updateList();
+    updateDriverList();
     setConfirmLoading(false);
     setFormSubmitted(true);
   };
