@@ -131,7 +131,7 @@ function SubConList({ subCons, updateSubConList }) {
           ? "ag-theme-alpine-dark"
           : "ag-theme-alpine"
       }
-      style={{ height: "400px", width: "100%" }}
+      style={{ height: "400px", width: "100%", padding: "10px 5px 20px 5px", }}
     >
       <AgGridReact
         rowData={subCons}

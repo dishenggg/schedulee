@@ -150,6 +150,7 @@ export default function SchedulingApp({
               },
               {
                 headerName: "Trip Description",
+                flex: 2,
                 field: "tripDescription",
               },
             ]}

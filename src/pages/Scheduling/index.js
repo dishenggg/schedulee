@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Space } from "antd";
+import { Space, DatePicker } from "antd";
 import SchedulingApp from "./SchedulingApp";
 import AddMultipleTrips from "./Forms/addMultipleTrips";
 import { Title } from "../../components/Typography/Title";
@@ -8,6 +8,7 @@ import AddContract from "./addContract";
 import { db } from "../../firebase";
 import { collection, getDocs, orderBy } from "firebase/firestore";
 import { ParseDateToFirestore } from "../../utils/ParseTime";
+import dayjs from "dayjs";
 
 const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -68,14 +69,17 @@ const Scheduling = () => {
     <>
       <Title>Scheduling Page</Title>
       <div>
-        <label>Date selected:</label>
-        <input
-          type="date"
+      <Space align='center'>
+        <Title level = { 3} style={{marginTop:'12px'}}>
+        Date selected:</Title>
+        <DatePicker
           id="date-input"
-          value={selectedDate.toISOString().substr(0, 10)}
+          format="DD-MM-YYYY"
+          defaultValue={dayjs()}
           onChange={handleDateChange}
         />
-      </div>
+        </Space>
+        </div>
       <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
         <AddTrip updateListOfTripsByDriver={updateListOfTripsByDriver} />
         <AddMultipleTrips
