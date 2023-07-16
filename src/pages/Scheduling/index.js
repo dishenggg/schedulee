@@ -49,15 +49,18 @@ const Scheduling = () => {
     res["Unscheduled Trips"] = trips.filter(
       (trip) => trip.bus === "" || trip.bus === null
     );
-    listOfDrivers.forEach((driverId) => {
-      res[driverId] = trips.filter((trip) => trip.bus === driverId);
+    listOfDrivers.forEach((driver) => {
+      res[driver.id] = trips.filter((trip) => trip.bus === driver.id);
     });
     setListOfTripsByDriver(res);
   };
 
   const populateListOfDrivers = async () => {
     const driverQuery = await getDocs(collection(db, "Bus Drivers"));
-    const drivers = driverQuery.docs.map((doc) => doc.id);
+    const drivers = driverQuery.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     setListOfDrivers(drivers);
   };
 
