@@ -18,10 +18,8 @@ const Scheduling = () => {
   const [listOfDrivers, setListOfDrivers] = useState({});
   const [listOfTrips, setListOfTrips] = useState({});
 
-  const handleDateChange = (event) => {
-    console.log(event);
-    const selectedDate = new Date(event.value);
-    setSelectedDate(selectedDate);
+  const handleDateChange = (date, dateString) => {
+    setSelectedDate(date.toDate());
 
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
@@ -92,6 +90,7 @@ const Scheduling = () => {
             Date selected:
           </Title>
           <DatePicker
+            allowClear={false}
             id="date-input"
             format="DD-MM-YYYY"
             defaultValue={dayjs()}
