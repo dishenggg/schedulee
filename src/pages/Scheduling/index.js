@@ -11,90 +11,101 @@ import { ParseDateToFirestore } from "../../utils/ParseTime";
 import dayjs from "dayjs";
 
 const Scheduling = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [editable, setEditable] = useState(true);
-  const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [editable, setEditable] = useState(true);
+    const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
 
-  const handleDateChange = (event) => {
-    const selectedDate = new Date(event.target.value);
-    //selectedDate.setHours(0, 0, 0, 0);
-    setSelectedDate(selectedDate);
+    const handleDateChange = (event) => {
+        console.log(event);
+        const selectedDate = new Date(event.value);
+        setSelectedDate(selectedDate);
 
-    const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
-    if (selectedDate < currentDate) {
-      setEditable(false);
-    } else {
-      setEditable(true);
-    }
-  };
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+        if (selectedDate < currentDate) {
+            setEditable(false);
+        } else {
+            setEditable(true);
+        }
+    };
 
-  const formattedDate = selectedDate.toLocaleDateString("en-GB");
-  const dateWithoutDashes = formattedDate.replace(/\//g, "");
+    const formattedDate = selectedDate.toLocaleDateString("en-GB");
+    const dateWithoutDashes = formattedDate.replace(/\//g, "");
 
-  const populateListOfTripsByDriver = async () => {
-    const driverQuery = await getDocs(collection(db, "Bus Drivers"));
-    const drivers = driverQuery.docs.map((doc) => doc.id);
-    const tripsQuery = await getDocs(
-      collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips"),
-      orderBy("startTime")
+    const populateListOfTripsByDriver = async () => {
+        const driverQuery = await getDocs(collection(db, "Bus Drivers"));
+        const drivers = driverQuery.docs.map((doc) => doc.id);
+        const tripsQuery = await getDocs(
+            collection(
+                db,
+                "Dates",
+                ParseDateToFirestore(selectedDate),
+                "trips"
+            ),
+            orderBy("startTime")
+        );
+        const trips = tripsQuery.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+
+        const res = {};
+        res["Unscheduled Trips"] = trips
+            .filter((trip) => trip.bus === "" || trip.bus === null)
+            .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
+        drivers.forEach((driverId) => {
+            res[driverId] = trips
+                .filter((trip) => trip.bus === driverId)
+                .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
+        });
+        console.log(res);
+        setListOfTripsByDriver(res);
+    };
+
+    const updateListOfTripsByDriver = () => {
+        populateListOfTripsByDriver();
+    };
+
+    useEffect(() => {
+        populateListOfTripsByDriver();
+    }, [selectedDate]);
+
+    return (
+        <>
+            <Title>Scheduling Page</Title>
+            <div>
+                <Space align="center">
+                    <Title level={3} style={{ marginTop: "12px" }}>
+                        Date selected:
+                    </Title>
+                    <DatePicker
+                        allowClear="false"
+                        id="date-input"
+                        format="DD-MM-YYYY"
+                        defaultValue={dayjs()}
+                        onChange={handleDateChange}
+                    />
+                </Space>
+            </div>
+            <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
+                <AddTrip
+                    updateListOfTripsByDriver={updateListOfTripsByDriver}
+                />
+                <AddMultipleTrips
+                    updateListOfTripsByDriver={updateListOfTripsByDriver}
+                />
+                <AddContract
+                    updateListOfTripsByDriver={updateListOfTripsByDriver}
+                />
+            </Space>
+            <SchedulingApp
+                selectedDate={dateWithoutDashes}
+                editable={editable}
+                listOfTripsByDriver={listOfTripsByDriver}
+                updateListOfTripsByDriver={updateListOfTripsByDriver}
+            />
+        </>
     );
-    const trips = tripsQuery.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    const res = {};
-    res["Unscheduled Trips"] = trips
-      .filter((trip) => trip.bus === "" || trip.bus === null)
-      .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
-    drivers.forEach((driverId) => {
-      res[driverId] = trips
-        .filter((trip) => trip.bus === driverId)
-        .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
-    });
-    console.log(res);
-    setListOfTripsByDriver(res);
-  };
-
-  const updateListOfTripsByDriver = () => {
-    populateListOfTripsByDriver();
-  };
-
-  useEffect(() => {
-    populateListOfTripsByDriver();
-  }, [selectedDate]);
-
-  return (
-    <>
-      <Title>Scheduling Page</Title>
-      <div>
-      <Space align='center'>
-        <Title level = { 3} style={{marginTop:'12px'}}>
-        Date selected:</Title>
-        <DatePicker
-          id="date-input"
-          format="DD-MM-YYYY"
-          defaultValue={dayjs()}
-          onChange={handleDateChange}
-        />
-        </Space>
-        </div>
-      <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
-        <AddTrip updateListOfTripsByDriver={updateListOfTripsByDriver} />
-        <AddMultipleTrips
-          updateListOfTripsByDriver={updateListOfTripsByDriver}
-        />
-        <AddContract updateListOfTripsByDriver={updateListOfTripsByDriver} />
-      </Space>
-      <SchedulingApp
-        selectedDate={dateWithoutDashes}
-        editable={editable}
-        listOfTripsByDriver={listOfTripsByDriver}
-        updateListOfTripsByDriver={updateListOfTripsByDriver}
-      />
-    </>
-  );
 };
 
 export default Scheduling;
