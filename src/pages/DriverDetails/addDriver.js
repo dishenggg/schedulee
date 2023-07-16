@@ -11,7 +11,6 @@ const AddDriver = ({ updateDriverList }) => {
 
   const onCreate = async (values) => {
     try {
-      console.log(values);
       const busNumber = values.busNumber.toUpperCase();
       const driverRef = doc(db, "Bus Drivers", busNumber);
       const driverSnapshot = await getDoc(driverRef);
@@ -34,7 +33,6 @@ const AddDriver = ({ updateDriverList }) => {
         setConfirmLoading(false);
       }
     } catch (error) {
-      console.log(error);
       message.error(error);
     }
   };
@@ -164,7 +162,7 @@ const AddDriver = ({ updateDriverList }) => {
           </Form.Item>
           <Form.Item name="local">
             <Radio.Group>
-              <Radio value="1">Local</Radio>  
+              <Radio value="1">Local</Radio>
               <Radio value="0">Non-Local</Radio>
             </Radio.Group>
           </Form.Item>

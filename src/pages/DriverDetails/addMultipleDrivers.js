@@ -82,7 +82,6 @@ const AddMultipleDrivers = ({ updateDriverList }) => {
       reader.onload = (e) => {
         const content = e.target.result;
         const parsedRows = parseContent(content, fileType).slice(1); // Skip first row for headers
-        console.log(parsedRows)
         const driverData = parsedRows.map((row, i) => {
           const driver = {};
           //driver["key"] = i;
@@ -147,7 +146,7 @@ const AddMultipleDrivers = ({ updateDriverList }) => {
     <>
       <Button
         type="primary"
-        icon = {<UsergroupAddOutlined />}
+        icon={<UsergroupAddOutlined />}
         onClick={() => {
           setOpenModal(true);
         }}
