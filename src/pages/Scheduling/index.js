@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Space, DatePicker } from "antd";
+import { Space, DatePicker, Tabs } from "antd";
 import SchedulingApp from "./SchedulingApp";
 import AddMultipleTrips from "./Forms/addMultipleTrips";
 import { Title } from "../../components/Typography/Title";
@@ -9,12 +9,14 @@ import { db } from "../../firebase";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { ParseDateToFirestore } from "../../utils/ParseTime";
 import dayjs from "dayjs";
+import AllTrips from "./AllTrips";
 
 const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editable, setEditable] = useState(true);
   const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
   const [listOfDrivers, setListOfDrivers] = useState({});
+  const [listOfTrips, setListOfTrips] = useState({});
 
   const handleDateChange = (event) => {
     const selectedDate = new Date(event.target.value);
@@ -44,6 +46,8 @@ const Scheduling = () => {
       id: doc.id,
       ...doc.data(),
     }));
+
+    setListOfTrips(trips);
 
     const res = {};
     res["Unscheduled Trips"] = trips.filter(
@@ -103,12 +107,30 @@ const Scheduling = () => {
         />
         <AddContract updateListOfTripsByDriver={updateListOfTripsByDriver} />
       </Space>
-      <SchedulingApp
-        selectedDate={dateWithoutDashes}
-        editable={editable}
-        listOfTripsByDriver={listOfTripsByDriver}
-        drivers={listOfDrivers}
-        updateListOfTripsByDriver={updateListOfTripsByDriver}
+      <Tabs
+        type="card"
+        items={[
+          {
+            label: "Scheduler",
+            key: 0,
+            children: (
+              <SchedulingApp
+                selectedDate={dateWithoutDashes}
+                editable={editable}
+                listOfTripsByDriver={listOfTripsByDriver}
+                drivers={listOfDrivers}
+                updateListOfTripsByDriver={updateListOfTripsByDriver}
+              />
+            ),
+          },
+          {
+            label: "All Trips",
+            key: 1,
+            children: (
+              <AllTrips trips={listOfTrips} selectedDate={formattedDate} />
+            ),
+          },
+        ]}
       />
     </>
   );
