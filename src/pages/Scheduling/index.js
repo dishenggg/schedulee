@@ -69,8 +69,9 @@ const Scheduling = () => {
   };
 
   useEffect(() => {
+    console.log("GETTING DRIVERS");
     populateListOfDrivers();
-  }, []);
+  }, [selectedDate]);
 
   useEffect(() => {
     if (listOfDrivers.length > 0) {
@@ -97,6 +98,7 @@ const Scheduling = () => {
       <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
         <AddTrip updateListOfTripsByDriver={updateListOfTripsByDriver} />
         <AddMultipleTrips
+          drivers={listOfDrivers}
           updateListOfTripsByDriver={updateListOfTripsByDriver}
         />
         <AddContract updateListOfTripsByDriver={updateListOfTripsByDriver} />
@@ -105,6 +107,7 @@ const Scheduling = () => {
         selectedDate={dateWithoutDashes}
         editable={editable}
         listOfTripsByDriver={listOfTripsByDriver}
+        drivers={listOfDrivers}
         updateListOfTripsByDriver={updateListOfTripsByDriver}
       />
     </>
