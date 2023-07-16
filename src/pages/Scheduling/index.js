@@ -19,8 +19,8 @@ const Scheduling = () => {
   const [listOfTrips, setListOfTrips] = useState({});
 
   const handleDateChange = (event) => {
-    const selectedDate = new Date(event.target.value);
-    //selectedDate.setHours(0, 0, 0, 0);
+    console.log(event);
+    const selectedDate = new Date(event.value);
     setSelectedDate(selectedDate);
 
     const currentDate = new Date();
