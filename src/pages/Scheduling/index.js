@@ -6,7 +6,7 @@ import { Title } from "../../components/Typography/Title";
 import AddTrip from "./addTrip.js";
 import AddContract from "./addContract";
 import { db } from "../../firebase";
-import { collection, getDocs, orderBy } from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { ParseDateToFirestore } from "../../utils/ParseTime";
 import dayjs from "dayjs";
 
@@ -14,6 +14,7 @@ const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editable, setEditable] = useState(true);
   const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
+  const [listOfDrivers, setListOfDrivers] = useState({});
 
   const handleDateChange = (event) => {
     const selectedDate = new Date(event.target.value);
@@ -33,11 +34,11 @@ const Scheduling = () => {
   const dateWithoutDashes = formattedDate.replace(/\//g, "");
 
   const populateListOfTripsByDriver = async () => {
-    const driverQuery = await getDocs(collection(db, "Bus Drivers"));
-    const drivers = driverQuery.docs.map((doc) => doc.id);
     const tripsQuery = await getDocs(
-      collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips"),
-      orderBy("startTime")
+      query(
+        collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips"),
+        orderBy("startTime")
+      )
     );
     const trips = tripsQuery.docs.map((doc) => ({
       id: doc.id,
@@ -45,16 +46,19 @@ const Scheduling = () => {
     }));
 
     const res = {};
-    res["Unscheduled Trips"] = trips
-      .filter((trip) => trip.bus === "" || trip.bus === null)
-      .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
-    drivers.forEach((driverId) => {
-      res[driverId] = trips
-        .filter((trip) => trip.bus === driverId)
-        .sort((a, b) => a.startTime.seconds - b.startTime.seconds);
+    res["Unscheduled Trips"] = trips.filter(
+      (trip) => trip.bus === "" || trip.bus === null
+    );
+    listOfDrivers.forEach((driverId) => {
+      res[driverId] = trips.filter((trip) => trip.bus === driverId);
     });
-    console.log(res);
     setListOfTripsByDriver(res);
+  };
+
+  const populateListOfDrivers = async () => {
+    const driverQuery = await getDocs(collection(db, "Bus Drivers"));
+    const drivers = driverQuery.docs.map((doc) => doc.id);
+    setListOfDrivers(drivers);
   };
 
   const updateListOfTripsByDriver = () => {
@@ -62,24 +66,31 @@ const Scheduling = () => {
   };
 
   useEffect(() => {
-    populateListOfTripsByDriver();
-  }, [selectedDate]);
+    populateListOfDrivers();
+  }, []);
+
+  useEffect(() => {
+    if (listOfDrivers.length > 0) {
+      populateListOfTripsByDriver();
+    }
+  }, [selectedDate, listOfDrivers]);
 
   return (
     <>
       <Title>Scheduling Page</Title>
       <div>
-      <Space align='center'>
-        <Title level = { 3} style={{marginTop:'12px'}}>
-        Date selected:</Title>
-        <DatePicker
-          id="date-input"
-          format="DD-MM-YYYY"
-          defaultValue={dayjs()}
-          onChange={handleDateChange}
-        />
+        <Space align="center">
+          <Title level={3} style={{ marginTop: "12px" }}>
+            Date selected:
+          </Title>
+          <DatePicker
+            id="date-input"
+            format="DD-MM-YYYY"
+            defaultValue={dayjs()}
+            onChange={handleDateChange}
+          />
         </Space>
-        </div>
+      </div>
       <Space style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
         <AddTrip updateListOfTripsByDriver={updateListOfTripsByDriver} />
         <AddMultipleTrips
