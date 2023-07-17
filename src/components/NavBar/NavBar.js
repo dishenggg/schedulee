@@ -1,49 +1,27 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { auth } from '../../firebase';
-import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
-import { Menu, Button} from 'antd';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { auth } from "../../firebase";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { Menu, Button } from "antd";
 import {
   DollarOutlined,
   CalendarOutlined,
   CarOutlined,
   IdcardOutlined,
   LogoutOutlined,
-} from '@ant-design/icons';
+  UserOutlined,
+} from "@ant-design/icons";
 
-const menuItems = [
-  {
-    label: (<Link to="/salary">Salary</Link>),
-    key: 'salary',
-    icon:<DollarOutlined />,
-  },
-  {
-    label: (<Link to="/scheduling">Schedule</Link>),
-    key: 'schedule',
-    icon:<CalendarOutlined />,
-  },
-  {
-    label: (<Link to="/bus-details">Bus Details</Link>),
-    key: 'bus',
-    icon:<CarOutlined />,
-  },
-  {
-    label: (<Link to="/driver-details">Driver Details</Link>),
-    key: 'Driver',
-    icon:<IdcardOutlined />,
-  },
-
-]
 const Navbar = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState('salary');
+  const [page, setPage] = useState("salary");
 
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
       await signOut(auth);
-      navigate('/login');
+      navigate("/login");
     } catch (err) {
       console.log(err);
     }
@@ -52,35 +30,44 @@ const Navbar = () => {
   const menuItems = [
     {
       label: <Link to="/salary">Salary</Link>,
-      key: 'salary',
+      key: "salary",
       icon: <DollarOutlined />,
     },
     {
       label: <Link to="/scheduling">Schedule</Link>,
-      key: 'schedule',
+      key: "schedule",
       icon: <CalendarOutlined />,
     },
     {
       label: <Link to="/bus-details">Bus Details</Link>,
-      key: 'bus',
+      key: "bus",
       icon: <CarOutlined />,
     },
     {
+      label: <Link to="/customer-details">Customer Details</Link>,
+      key: "customer",
+      icon: <UserOutlined />,
+    },
+    {
       label: <Link to="/driver-details">Driver Details</Link>,
-      key: 'driver',
+      key: "driver",
       icon: <IdcardOutlined />,
     },
     {
       label: <>{auth?.currentUser?.email}</>,
-      style: { marginLeft: 'auto' },
+      style: { marginLeft: "auto" },
       children: [
         {
           label: (
-            <Button type="ghost" icon={<LogoutOutlined />} onClick={handleLogout}>
+            <Button
+              type="ghost"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+            >
               Log Out
             </Button>
           ),
-          key: 'logout',
+          key: "logout",
         },
       ],
     },
@@ -89,7 +76,14 @@ const Navbar = () => {
   const onClick = (e) => {
     setPage(e.key);
   };
-  return <Menu onClick={onClick} selectedKeys={[[page]]} mode="horizontal" items={menuItems} />;
+  return (
+    <Menu
+      onClick={onClick}
+      selectedKeys={[[page]]}
+      mode="horizontal"
+      items={menuItems}
+    />
+  );
 };
 
 export default Navbar;
