@@ -90,14 +90,14 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         <Space size={"large"}>
           <Form.Item
             label="Contact Person Name"
-            name="contactName"
+            name="contactPersonName"
             rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Contact Person Number"
-            name="contactNumber"
+            name="contactPersonPhoneNumber"
             rules={[
               {
                 required: true,
