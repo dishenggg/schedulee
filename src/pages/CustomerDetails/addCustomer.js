@@ -35,7 +35,8 @@ const AddCustomer = ({ updateCustomerList }) => {
         setConfirmLoading(false);
       }
     } catch (error) {
-      message.error(error);
+      message.error(error.toString());
+
     }
   };
 

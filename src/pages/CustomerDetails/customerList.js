@@ -31,13 +31,15 @@ function CustomerList({ customers, updateCustomerList }) {
       flex: 2,
     },
     {
-      headerName: "Trips fulfilled  by Drivers",
+      headerName: "Trips fulfilled by Drivers",
+
       field: "",
       editable: false,
       flex: 2,
     },
     {
-      headerName: "Trips fulfilled  by Sub Con",
+      headerName: "Trips fulfilled by Sub Con",
+
       field: "",
       editable: false,
       flex: 2,
@@ -107,7 +109,8 @@ function CustomerList({ customers, updateCustomerList }) {
       }
     } catch (error) {
 
-      message.error(err);
+      message.error(error.toString());
+
     }
     updateCustomerList();
   }; 
