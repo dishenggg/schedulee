@@ -105,7 +105,8 @@ function CustomerList({ customers, updateCustomerList }) {
 
           });
       }
-    } catch (err) {
+    } catch (error) {
+
       message.error(err);
     }
     updateCustomerList();
