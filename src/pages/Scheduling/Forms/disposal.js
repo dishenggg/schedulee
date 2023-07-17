@@ -90,19 +90,19 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         <Space size={"large"}>
           <Form.Item
             label="Contact Person Name"
-            name="contactPersonName"
+            name="contactName"
             rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Contact Person Number"
-            name="contactPersonPhoneNumber"
+            name="contactNumber"
             rules={[
               {
                 required: true,
                 pattern: /^[689]\d{7}$/,
-                message: "Check '${label}' Format",
+                message: "Check Phone Number Format",
               },
             ]}
           >
