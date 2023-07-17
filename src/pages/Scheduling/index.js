@@ -56,7 +56,6 @@ const Scheduling = () => {
     };
 
     const populateListOfTrips = async () => {
-        console.log('get trips');
         const tripsQuery = await getDocs(
             query(
                 collection(
@@ -78,20 +77,17 @@ const Scheduling = () => {
 
     const updateListOfTripsByDriver = () => {
         populateListOfTrips();
-        populateListOfTripsByDriver();
+        populateListOfDrivers();
     };
 
     useEffect(() => {
         populateListOfDrivers();
+        populateListOfTrips();
     }, [selectedDate]);
 
     useEffect(() => {
-        console.log('boom');
-        if (listOfDrivers.length > 0) {
-            populateListOfTripsByDriver();
-        }
-        populateListOfTrips();
-    }, [selectedDate, listOfDrivers]);
+        populateListOfTripsByDriver();
+    }, [selectedDate, listOfDrivers, listOfTrips]);
 
     return (
         <>
