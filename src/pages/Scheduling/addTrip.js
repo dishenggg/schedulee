@@ -3,7 +3,7 @@ import { Button, Modal, Select } from "antd";
 import { TripForm } from "./forms.js";
 import { PlusCircleOutlined } from "@ant-design/icons";
 
-const AddTrip = () => {
+const AddTrip = ({ updateListOfTripsByDriver }) => {
   const [openModal, setOpenModal] = useState(false);
   const [formValue, setFormValue] = useState("1");
 
@@ -41,7 +41,11 @@ const AddTrip = () => {
               { value: "3", label: "Disposal" },
             ]}
           />
-          <TripForm value={formValue} setOpenModal={setOpenModal} />
+          <TripForm
+            value={formValue}
+            setOpenModal={setOpenModal}
+            updateListOfTripsByDriver={updateListOfTripsByDriver}
+          />
         </div>
       </Modal>
     </div>

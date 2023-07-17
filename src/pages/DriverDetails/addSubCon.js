@@ -1,7 +1,7 @@
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import React, { useState } from "react";
-import { Button, Modal, Form, Input, InputNumber, Radio, message } from "antd";
+import { Button, Modal, Form, Input, InputNumber, message } from "antd";
 import { UserAddOutlined } from "@ant-design/icons";
 
 const AddSubCon = ({ updateSubConList }) => {
@@ -11,7 +11,6 @@ const AddSubCon = ({ updateSubConList }) => {
 
   const onCreate = async (values) => {
     try {
-      console.log(values);
       const busNumber = values.busNumber.toUpperCase();
       const subConRef = doc(db, "Sub Cons", busNumber);
       const subConsSnapshot = await getDoc(subConRef);
@@ -33,7 +32,6 @@ const AddSubCon = ({ updateSubConList }) => {
         setConfirmLoading(false);
       }
     } catch (error) {
-      console.log(error);
       message.error(error);
     }
   };
@@ -42,7 +40,7 @@ const AddSubCon = ({ updateSubConList }) => {
     <div>
       <Button
         type="primary"
-        icon = { <UserAddOutlined />}
+        icon={<UserAddOutlined />}
         onClick={() => {
           setOpenModal(true);
         }}

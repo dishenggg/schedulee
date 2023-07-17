@@ -1,10 +1,6 @@
 import { useMemo } from "react";
 import { db } from "../../firebase";
-import {
-  deleteDoc,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -41,15 +37,13 @@ function SubConList({ subCons, updateSubConList }) {
   };
 
   const handleDelete = (data) => {
-    console.log(data);
     deleteDoc(doc(db, "Sub Cons", data.id))
       .then(() => {
         message.success(data.id + " deleted successfully!");
         updateSubConList();
       })
       .catch((error) => {
-        console.log(error);
-        message.error("Failed to delete Sub Con");
+        message.error("Failed to delete Sub Con: " + error);
       });
   };
 
@@ -74,7 +68,6 @@ function SubConList({ subCons, updateSubConList }) {
 
   const onCellValueChanged = (params) => {
     const { id, ...updatedData } = params.data;
-    console.log(updatedData);
     try {
       validateRow(updatedData);
       const confirmUpdate = window.confirm(
@@ -82,8 +75,7 @@ function SubConList({ subCons, updateSubConList }) {
       );
       if (confirmUpdate) {
         updateDoc(doc(db, "Sub Cons", id), updatedData).catch((error) => {
-          console.log(error);
-          message.error("Failed to update sub con.");
+          message.error("Failed to update sub con: " + error);
         });
       }
     } catch (err) {
@@ -106,11 +98,11 @@ function SubConList({ subCons, updateSubConList }) {
       flex: 2,
     },
     {
-        headerName: "Bus Number",
-        field: "busNumber",
-        editable: false,
-        flex: 2,
-      },
+      headerName: "Bus Number",
+      field: "busNumber",
+      editable: false,
+      flex: 2,
+    },
     {
       headerName: "Contact Number",
       field: "contactNumber",
@@ -139,7 +131,7 @@ function SubConList({ subCons, updateSubConList }) {
           ? "ag-theme-alpine-dark"
           : "ag-theme-alpine"
       }
-      style={{ height: "400px", width: "100%" }}
+      style={{ height: "400px", width: "100%", padding: "10px 5px 20px 5px", }}
     >
       <AgGridReact
         rowData={subCons}
