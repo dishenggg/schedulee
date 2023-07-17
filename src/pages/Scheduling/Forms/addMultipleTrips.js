@@ -287,9 +287,11 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
                 currentIndex = displayIndex;
                 trip['status'] = 'Trip type is wrong.';
             }
+
+            console.log(row);
             currentIndex.forEach((header, index) => {
                 if (header === 'bus' || header === 'bus2') {
-                    if (row[index] === '') {
+                    if (row[index] === '' || !row[index]) {
                         trip[header] = [];
                     } else {
                         trip[header] = row[index].split(',');
