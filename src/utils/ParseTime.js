@@ -33,7 +33,6 @@ export function ParseTimeFromFirestoreToString(datetime) {
 }
 
 export function parseDateTimeFromStringToFireStore(timeString, dateString) {
-  console.log(dayjs(ParseDateFromFirestore(dateString)));
   const date = dayjs(ParseDateFromFirestore(dateString))
     .hour(parseInt(timeString.substring(0, 2)))
     .minute(parseInt(timeString.substring(3, 5)));

@@ -15,15 +15,16 @@ const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editable, setEditable] = useState(true);
   const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
-  const [listOfDrivers, setListOfDrivers] = useState({});
-  const [listOfTrips, setListOfTrips] = useState({});
+  const [listOfDrivers, setListOfDrivers] = useState([]);
+  const [listOfTrips, setListOfTrips] = useState([]);
 
   const handleDateChange = (date, dateString) => {
     setSelectedDate(date.toDate());
 
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
-    if (selectedDate < currentDate) {
+
+    if (selectedDate.setHours(0, 0, 0, 0) < currentDate) {
       setEditable(false);
     } else {
       setEditable(true);
@@ -34,25 +35,12 @@ const Scheduling = () => {
   const dateWithoutDashes = formattedDate.replace(/\//g, "");
 
   const populateListOfTripsByDriver = async () => {
-    const tripsQuery = await getDocs(
-      query(
-        collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips"),
-        orderBy("startTime")
-      )
-    );
-    const trips = tripsQuery.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    setListOfTrips(trips);
-
     const res = {};
-    res["Unscheduled Trips"] = trips.filter(
+    res["Unscheduled Trips"] = listOfTrips.filter(
       (trip) => trip.bus === "" || trip.bus === null
     );
     listOfDrivers.forEach((driver) => {
-      res[driver.id] = trips.filter((trip) => trip.bus === driver.id);
+      res[driver.id] = listOfTrips.filter((trip) => trip.bus === driver.id);
     });
     setListOfTripsByDriver(res);
   };
@@ -66,20 +54,34 @@ const Scheduling = () => {
     setListOfDrivers(drivers);
   };
 
+  const populateListOfTrips = async () => {
+    const tripsQuery = await getDocs(
+      query(
+        collection(db, "Dates", ParseDateToFirestore(selectedDate), "trips"),
+        orderBy("startTime")
+      )
+    );
+    const trips = tripsQuery.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    setListOfTrips(trips);
+  };
+
   const updateListOfTripsByDriver = () => {
-    populateListOfTripsByDriver();
+    populateListOfTrips();
+    populateListOfDrivers();
   };
 
   useEffect(() => {
-    console.log("GETTING DRIVERS");
     populateListOfDrivers();
+    populateListOfTrips();
   }, [selectedDate]);
 
   useEffect(() => {
-    if (listOfDrivers.length > 0) {
-      populateListOfTripsByDriver();
-    }
-  }, [selectedDate, listOfDrivers]);
+    populateListOfTripsByDriver();
+  }, [selectedDate, listOfDrivers, listOfTrips]);
 
   return (
     <>
