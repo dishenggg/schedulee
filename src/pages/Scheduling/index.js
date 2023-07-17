@@ -36,9 +36,8 @@ const Scheduling = () => {
 
     const populateListOfTripsByDriver = async () => {
         const res = {};
-        console.log(listOfTrips);
         res['Unscheduled Trips'] = listOfTrips.filter(
-            (trip) => trip.bus.length === 0
+            (trip) => trip.numAssigned < trip.numberBus
         );
         listOfDrivers.forEach((driver) => {
             res[driver.id] = listOfTrips.filter((trip) =>

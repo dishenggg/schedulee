@@ -3,7 +3,14 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { useEffect, useState, useRef } from 'react';
 import { db } from '../../firebase';
-import { doc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
+import {
+    doc,
+    getDoc,
+    updateDoc,
+    arrayRemove,
+    arrayUnion,
+    runTransaction,
+} from 'firebase/firestore';
 import { Title } from '../../components/Typography/Title';
 import {
     ParseTimeFromFirestoreToString,
@@ -72,13 +79,77 @@ export default function SchedulingApp({
             const oldId = gridMapToDriverId[dragStartId];
             const newId = gridMapToDriverId[params.api.getGridId()];
             const data = params.node.data;
+            // Do nothing if dropped in same grid
+            if (oldId === newId) {
+                return;
+            }
+
+            // do nothing if it clashes
+            if (newId !== unscheduledTrips) {
+                const newTripStartTime = parseDateTimeFromStringToFireStore(
+                    data.startTime,
+                    selectedDate
+                );
+                const newTripEndTime = parseDateTimeFromStringToFireStore(
+                    data.endTime,
+                    selectedDate
+                );
+
+                for (const trip of listOfTripsByDriver[newId]) {
+                    const tripStartTime = ParseTimeFromFirestore(
+                        trip.startTime
+                    );
+                    const tripEndTime = ParseTimeFromFirestore(trip.endTime);
+                    const diffNewStartOldEnd = newTripStartTime.diff(
+                        tripEndTime,
+                        'minute'
+                    );
+                    const diffNewEndOldStart = newTripEndTime.diff(
+                        tripStartTime,
+                        'minute'
+                    );
+                    if (
+                        (diffNewStartOldEnd >= -15 &&
+                            diffNewStartOldEnd <= 15) ||
+                        (diffNewEndOldStart >= -15 && diffNewEndOldStart <= 15)
+                    ) {
+                        message.error(
+                            `${newId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
+                        );
+                        return;
+                    }
+                }
+            }
+
             if (newId === unscheduledTrips) {
-                updateDoc(doc(db, 'Dates', selectedDate, 'trips', data.id), {
-                    bus: arrayRemove(oldId),
+                runTransaction(db, async (transaction) => {
+                    const docRef = doc(
+                        db,
+                        'Dates',
+                        selectedDate,
+                        'trips',
+                        data.id
+                    );
+                    const docSnapshot = await transaction.get(docRef);
+                    transaction.update(docSnapshot.ref, {
+                        bus: arrayRemove(oldId),
+                        numAssigned: docSnapshot.data().numAssigned - 1,
+                    });
                 });
             } else {
-                updateDoc(doc(db, 'Dates', selectedDate, 'trips', data.id), {
-                    bus: arrayUnion(newId),
+                runTransaction(db, async (transaction) => {
+                    const docRef = doc(
+                        db,
+                        'Dates',
+                        selectedDate,
+                        'trips',
+                        data.id
+                    );
+                    const docSnapshot = await transaction.get(docRef);
+                    transaction.update(docSnapshot.ref, {
+                        bus: arrayUnion(newId),
+                        numAssigned: docSnapshot.data().numAssigned + 1,
+                    });
                 });
             }
 
@@ -88,6 +159,42 @@ export default function SchedulingApp({
         } catch (error) {
             message.error(error.toString());
         }
+    };
+
+    const columnDefs = (driverId) => {
+        return driverId === unscheduledTrips
+            ? [
+                  {
+                      headerName: 'Time',
+                      field: 'startTime',
+                      maxWidth: 100,
+                      rowDrag: editable,
+                  },
+                  {
+                      headerName: 'Trip Description',
+                      flex: 3,
+                      field: 'tripDescription',
+                  },
+                  {
+                      headerName: 'Assigned',
+                      flex: 2,
+                      valueGetter: (params) =>
+                          `${params.data.numAssigned}/${params.data.numberBus}`,
+                  },
+              ]
+            : [
+                  {
+                      headerName: 'Time',
+                      field: 'startTime',
+                      maxWidth: 100,
+                      rowDrag: editable,
+                  },
+                  {
+                      headerName: 'Trip Description',
+                      flex: 2,
+                      field: 'tripDescription',
+                  },
+              ];
     };
 
     const generateGrid = (driverId) => {
@@ -134,19 +241,7 @@ export default function SchedulingApp({
                     style={{ height: '400px', width: '100%' }}
                 >
                     <AgGridReact
-                        columnDefs={[
-                            {
-                                headerName: 'Time',
-                                field: 'startTime',
-                                maxWidth: 100,
-                                rowDrag: editable,
-                            },
-                            {
-                                headerName: 'Trip Description',
-                                flex: 2,
-                                field: 'tripDescription',
-                            },
-                        ]}
+                        columnDefs={columnDefs(driverId)}
                         rowData={driverTripData}
                         suppressHorizontalScroll={true}
                         onGridReady={(params) => onGridReady(params, driverId)}
