@@ -1,218 +1,209 @@
-import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import { useEffect, useState, useRef } from "react";
-import { db } from "../../firebase";
-import { doc, updateDoc } from "firebase/firestore";
-import { Title } from "../../components/Typography/Title";
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { useEffect, useState, useRef } from 'react';
+import { db } from '../../firebase';
+import { doc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
+import { Title } from '../../components/Typography/Title';
 import {
-  ParseTimeFromFirestoreToString,
-  parseDateTimeFromStringToFireStore,
-  ParseTimeFromFirestore,
-} from "../../utils/ParseTime";
-import { message } from "antd";
+    ParseTimeFromFirestoreToString,
+    parseDateTimeFromStringToFireStore,
+    ParseTimeFromFirestore,
+} from '../../utils/ParseTime';
+import { message } from 'antd';
 
 export default function SchedulingApp({
-  selectedDate,
-  editable,
-  listOfTripsByDriver,
-  drivers,
-  updateListOfTripsByDriver,
+    selectedDate,
+    editable,
+    listOfTripsByDriver,
+    drivers,
+    updateListOfTripsByDriver,
 }) {
-  const unscheduledTrips = "Unscheduled Trips";
+    const unscheduledTrips = 'Unscheduled Trips';
 
-  const [driverDetails, setDriverDetails] = useState({});
-  const gridRefs = useRef({});
+    const [driverDetails, setDriverDetails] = useState({});
+    const gridRefs = useRef({});
+    const [gridMapToDriverId, setGridMapToDriverId] = useState({});
+    const [dragStartId, setDragStartId] = useState(null);
+    const [dragStarted, setDragStarted] = useState(false);
 
-  const populateDriverDetails = async () => {
-    const res = {};
-    drivers.forEach((row) => {
-      res[row.busNumber] = { ...row };
-    });
-    setDriverDetails(res);
-  };
+    const populateDriverDetails = async () => {
+        const res = {};
+        drivers.forEach((row) => {
+            res[row.busNumber] = { ...row };
+        });
+        setDriverDetails(res);
+    };
 
-  const getRowId = (params) => params.data.id;
+    const getRowId = (params) => params.data.id;
 
-  const onGridReady = (params, gridKey) => {
-    gridRefs.current[gridKey] = params.api;
-  };
+    const onGridReady = (params, gridKey) => {
+        const newDropZoneParams = params.api.getRowDropZoneParams();
 
-  const gridDragOver = (event) => {
-    const dragSupported = event.dataTransfer.types.length;
-    if (dragSupported) {
-      event.dataTransfer.dropEffect = "move";
-      event.preventDefault();
-    }
-  };
+        for (const grid in gridRefs.current) {
+            const oldDropZoneParams =
+                gridRefs.current[grid].getRowDropZoneParams();
 
-  const gridDrop = async (driverId, event) => {
-    event.preventDefault();
-
-    const jsonData = event.dataTransfer.getData("application/json");
-    const data = JSON.parse(jsonData);
-
-    // if data missing or data has no it, do nothing
-    if (!data || data.id == null) {
-      return;
-    }
-    const gridApi = gridRefs.current[driverId];
-
-    // do nothing if row is already in the grid, otherwise we would have duplicates
-    const rowAlreadyInGrid = !!gridApi.getRowNode(data.id);
-    if (rowAlreadyInGrid) {
-      return;
-    }
-
-    // do nothing if it clashes
-    if (driverId !== unscheduledTrips) {
-      const newTripDT = parseDateTimeFromStringToFireStore(
-        data.startTime,
-        selectedDate
-      );
-      for (const trip of listOfTripsByDriver[driverId]) {
-        const tripDT = ParseTimeFromFirestore(trip.startTime);
-        const diffInMinutes = tripDT.diff(newTripDT, "minute");
-        if (diffInMinutes >= -15 && diffInMinutes <= 15) {
-          message.error(
-            `${driverId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
-          );
-          return;
+            params.api.addRowDropZone(oldDropZoneParams); // Add all exising gridRefs to params dropzone
+            gridRefs.current[grid].addRowDropZone(newDropZoneParams); // Add params too all existing gridRefs
         }
-      }
-    }
 
-    if (driverId === unscheduledTrips) {
-      await updateDoc(doc(db, "Dates", selectedDate, "trips", data.id), {
-        bus: "",
-      });
-    } else {
-      await updateDoc(doc(db, "Dates", selectedDate, "trips", data.id), {
-        bus: driverId,
-      });
-    }
-    updateListOfTripsByDriver();
-  };
+        // Add params to gridRefs and gridMap
+        gridRefs.current[gridKey] = params.api;
+        gridMapToDriverId[params.api.getGridId()] = gridKey;
+    };
 
-  useEffect(() => {
-    if (drivers.length > 0) {
-      populateDriverDetails();
-    }
-  }, [drivers]);
+    useEffect(() => {
+        if (drivers.length > 0) {
+            populateDriverDetails();
+        }
+    }, [drivers]);
 
-  const generateGrid = (driverId) => {
-    const driverTrips = listOfTripsByDriver[driverId] || [];
-    const driverTripData = JSON.parse(JSON.stringify(driverTrips)); // Deep copy to not mutate values
+    const onRowDragEnter = (params) => {
+        const gridId = params.api.getGridId();
+        if (!dragStarted) {
+            setDragStarted(!dragStarted);
+            setDragStartId(gridId);
+        }
+    };
 
-    driverTripData.map((row) => {
-      row.startTime = ParseTimeFromFirestoreToString(row.startTime);
-      if (row.startTime2) {
-        row.startTime2 = ParseTimeFromFirestoreToString(row.startTime2);
-      }
-      if (row.endTime) {
-        row.endTime = ParseTimeFromFirestoreToString(row.endTime);
-      }
-      return row;
-    });
+    const onRowDragEnd = (params) => {
+        try {
+            const oldId = gridMapToDriverId[dragStartId];
+            const newId = gridMapToDriverId[params.api.getGridId()];
+            const data = params.node.data;
+            if (newId === unscheduledTrips) {
+                updateDoc(doc(db, 'Dates', selectedDate, 'trips', data.id), {
+                    bus: arrayRemove(oldId),
+                });
+            } else {
+                updateDoc(doc(db, 'Dates', selectedDate, 'trips', data.id), {
+                    bus: arrayUnion(newId),
+                });
+            }
 
-    var busSize = "";
-    var contactNumber = "";
-    var remarks = "";
-    const driverObj = driverDetails[driverId];
-    const driverData = { ...driverObj }; // it doesnt work without this i dont know why
-    if (driverId !== unscheduledTrips) {
-      busSize = driverData["busSize"];
-      contactNumber = driverData["contactNumber"];
-      remarks = driverData["remarks"];
-    }
+            updateListOfTripsByDriver();
+            setDragStarted(false);
+            setDragStartId(null);
+        } catch (error) {
+            message.error(error.toString());
+        }
+    };
+
+    const generateGrid = (driverId) => {
+        const driverTrips = listOfTripsByDriver[driverId] || [];
+        const driverTripData = JSON.parse(JSON.stringify(driverTrips)); // Deep copy to not mutate values
+
+        driverTripData.map((row) => {
+            row.startTime = ParseTimeFromFirestoreToString(row.startTime);
+            if (row.startTime2) {
+                row.startTime2 = ParseTimeFromFirestoreToString(row.startTime2);
+            }
+            if (row.endTime) {
+                row.endTime = ParseTimeFromFirestoreToString(row.endTime);
+            }
+            return row;
+        });
+
+        var busSize = '';
+        var contactNumber = '';
+        var remarks = '';
+        const driverObj = driverDetails[driverId];
+        const driverData = { ...driverObj }; // it doesnt work without this i dont know why
+        if (driverId !== unscheduledTrips) {
+            busSize = driverData['busSize'];
+            contactNumber = driverData['contactNumber'];
+            remarks = driverData['remarks'];
+        }
+
+        return (
+            <>
+                <Title level={4}>
+                    {driverId === unscheduledTrips
+                        ? `${driverId}`
+                        : `${driverId} (${busSize}) HP: ${contactNumber} ${
+                              remarks || ''
+                          }`}
+                </Title>
+                <div
+                    className={
+                        localStorage.getItem('darkMode') === 'true'
+                            ? 'ag-theme-alpine-dark'
+                            : 'ag-theme-alpine'
+                    }
+                    style={{ height: '400px', width: '100%' }}
+                >
+                    <AgGridReact
+                        columnDefs={[
+                            {
+                                headerName: 'Time',
+                                field: 'startTime',
+                                maxWidth: 100,
+                                rowDrag: editable,
+                            },
+                            {
+                                headerName: 'Trip Description',
+                                flex: 2,
+                                field: 'tripDescription',
+                            },
+                        ]}
+                        rowData={driverTripData}
+                        suppressHorizontalScroll={true}
+                        onGridReady={(params) => onGridReady(params, driverId)}
+                        animateRows={true}
+                        getRowId={getRowId}
+                        onRowDragEnter={onRowDragEnter}
+                        onRowDragEnd={onRowDragEnd}
+                    />
+                </div>
+            </>
+        );
+    };
 
     return (
-      <>
-        <Title level={4}>
-          {driverId === unscheduledTrips
-            ? `${driverId}`
-            : `${driverId} (${busSize}) HP: ${contactNumber} ${remarks || ""}`}
-        </Title>
         <div
-          className={
-            localStorage.getItem("darkMode") === "true"
-              ? "ag-theme-alpine-dark"
-              : "ag-theme-alpine"
-          }
-          style={{ height: "400px", width: "100%" }}
-          onDragOver={gridDragOver}
-          onDrop={(e) => gridDrop(driverId, e)}
+            style={{
+                padding: '10px 5px 40px 5px',
+            }}
         >
-          <AgGridReact
-            columnDefs={[
-              {
-                headerName: "Time",
-                field: "startTime",
-                maxWidth: 100,
-                dndSource: editable,
-              },
-              {
-                headerName: "Trip Description",
-                flex: 2,
-                field: "tripDescription",
-              },
-            ]}
-            rowData={driverTripData}
-            suppressHorizontalScroll={true}
-            onGridReady={(params) => onGridReady(params, driverId)}
-            rowDragManaged={true}
-            animateRows={true}
-            getRowId={getRowId}
-          />
-        </div>
-      </>
-    );
-  };
-
-  return (
-    <div
-      style={{
-        padding: "10px 5px 40px 5px",
-      }}
-    >
-      <div
-        style={{
-          position: "fixed",
-          height: "600px",
-          width: "400px",
-          marginLeft: "20px",
-        }}
-      >
-        {generateGrid(unscheduledTrips)}
-      </div>
-      <div
-        className="driver-tables-container"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          marginLeft: "270px",
-        }}
-      >
-        {Object.keys(listOfTripsByDriver).map((driverId, i) => {
-          if (driverId === unscheduledTrips) {
-            return;
-          }
-          return (
             <div
-              key={driverId}
-              style={{
-                height: "400px",
-                width: "33%",
-                marginBottom: "40px",
-                marginRight: "15px",
-              }}
+                style={{
+                    position: 'fixed',
+                    height: '600px',
+                    width: '400px',
+                    marginLeft: '20px',
+                }}
             >
-              {generateGrid(driverId)}
+                {generateGrid(unscheduledTrips)}
             </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+            <div
+                className="driver-tables-container"
+                style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    marginLeft: '270px',
+                }}
+            >
+                {Object.keys(listOfTripsByDriver).map((driverId, i) => {
+                    if (driverId === unscheduledTrips) {
+                        return <></>;
+                    }
+                    return (
+                        <div
+                            key={driverId}
+                            style={{
+                                height: '400px',
+                                width: '33%',
+                                marginBottom: '40px',
+                                marginRight: '15px',
+                            }}
+                        >
+                            {generateGrid(driverId)}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 }
