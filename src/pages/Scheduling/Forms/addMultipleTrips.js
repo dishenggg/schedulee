@@ -18,6 +18,9 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
     const [formSubmitted, setFormSubmitted] = useState(false);
     const [data, setData] = useState([]);
     const { Dragger } = Upload;
+    const renderBuses = (val) => {
+        return <span>{val ? val.join(', ') : null}</span>;
+    };
 
     const oneWayColumns = [
         {
@@ -231,6 +234,7 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
         {
             title: 'buses',
             dataIndex: 'bus',
+            render: renderBuses,
         },
         {
             title: 'Return Time(2 Way)',
@@ -239,6 +243,7 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
         {
             title: 'buses (2 Way)',
             dataIndex: 'bus2',
+            render: renderBuses,
         },
         {
             title: 'Upload Status',
@@ -283,17 +288,25 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
                 trip['status'] = 'Trip type is wrong.';
             }
             currentIndex.forEach((header, index) => {
-                if (header !== 'bus' && header !== 'bus2') {
-                    trip[header] = row[index];
+                if (header === 'bus' || header === 'bus2') {
+                    if (row[index] === '') {
+                        trip[header] = [];
+                    } else {
+                        trip[header] = row[index].split(',');
+                    }
                     return;
                 }
-                if (row[index] === '') {
-                    trip[header] = [];
-                } else {
-                    trip[header] = row[index].split(',');
+                if (header === 'numberBus' || header === 'numberPax') {
+                    trip[header] = parseInt(row[index]);
+                    return;
                 }
+                trip[header] = row[index];
             });
-            console.log(trip);
+            trip.numAssigned = trip.bus.length;
+
+            if (trip.numAssigned > trip.numberBus) {
+                trip.status = 'You have more buses assigned than required.';
+            }
             return trip;
         });
         return res;
@@ -414,6 +427,9 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
 
         const promises = data.map(async ({ status, ...row }) => {
             try {
+                if (status) {
+                    throw status;
+                }
                 const firebaseData = prepRowForFirebase(row);
                 if (row.type === 'oneway') {
                     await postOneWay(firebaseData);
@@ -472,7 +488,7 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
                 onCancel={onCancel}
                 confirmLoading={confirmLoading}
                 onOk={onOk}
-                width={1200}
+                width={1600}
             >
                 <Dragger {...props}>
                     <p>
