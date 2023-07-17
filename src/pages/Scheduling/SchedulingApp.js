@@ -73,7 +73,6 @@ export default function SchedulingApp({
       for (const trip of listOfTripsByDriver[driverId]) {
         const tripDT = ParseTimeFromFirestore(trip.startTime);
         const diffInMinutes = tripDT.diff(newTripDT, "minute");
-        console.log(diffInMinutes);
         if (diffInMinutes >= -15 && diffInMinutes <= 15) {
           message.error(
             `${driverId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
