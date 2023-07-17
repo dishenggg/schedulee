@@ -101,7 +101,8 @@ function CustomerList({ customers, updateCustomerList }) {
             message.success("Successfully Updated");
           })
           .catch((error) => {
-            message.error("Failed to update driver: " + error);
+            message.error("Failed to update customer: " + error);
+
           });
       }
     } catch (err) {
