@@ -7,6 +7,7 @@ import {
   TimePicker,
   InputNumber,
   message,
+  Space,
 } from "antd";
 import { Title } from "../../../components/Typography/Title";
 import dayjs from "dayjs";
@@ -31,7 +32,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const handleSubmit = async (values) => {
     try {
       const date = ParseDateToFirestore(values.date);
-      const unassignedBus = "";
+      const unassignedBus = [];
       const disposalTrip = "disposal";
       const tripDetails = {
         bus: unassignedBus,
@@ -86,26 +87,28 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         >
           <Input />
         </Form.Item>
-        <Form.Item
-          label="Contact Person Name"
-          name="contactPersonName"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Contact Person Number"
-          name="contactPersonPhoneNumber"
-          rules={[
-            {
-              required: true,
-              pattern: /^[689]\d{7}$/,
-              message: "Check '${label}' Format",
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
+        <Space size={"large"}>
+          <Form.Item
+            label="Contact Person Name"
+            name="contactPersonName"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Contact Person Number"
+            name="contactPersonPhoneNumber"
+            rules={[
+              {
+                required: true,
+                pattern: /^[689]\d{7}$/,
+                message: "Check '${label}' Format",
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+        </Space>
         <Form.Item
           label="Trip Description"
           name="tripDescription"
@@ -113,61 +116,65 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         >
           <Input />
         </Form.Item>
-        <Form.Item
-          label="Date (YYYY-MM-DD)"
-          name="date"
-          rules={[{ required: true }]}
-        >
-          <DatePicker disabledDate={disabledDate} />
-        </Form.Item>
-        <Form.Item
-          label="Start Time (HH:MM)"
-          name="startTime"
-          rules={[{ required: true }]}
-        >
-          <TimePicker
-            format={"HH:mm"}
-            value={value}
-            onChange={onChange}
-            popupStyle={{ display: "none" }}
-            changeOnBlur={true}
-          />
-        </Form.Item>
-        <Form.Item
-          label="End Time (HH:MM)"
-          name="endTime"
-          rules={[{ required: true }]}
-        >
-          <TimePicker
-            format={"HH:mm"}
-            value={value}
-            onChange={onChange}
-            popupStyle={{ display: "none" }}
-            changeOnBlur={true}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Number of Pax"
-          name="numberPax"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <InputNumber min={1} step={1} />
-        </Form.Item>
-        <Form.Item
-          label="Number of Buses"
-          name="numberBus"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <InputNumber min={1} step={1} />
-        </Form.Item>
+        <Space size={"small"}>
+          <Form.Item
+            label="Date (YYYY-MM-DD)"
+            name="date"
+            rules={[{ required: true }]}
+          >
+            <DatePicker disabledDate={disabledDate} />
+          </Form.Item>
+          <Form.Item
+            label="Start Time (HH:MM)"
+            name="startTime"
+            rules={[{ required: true }]}
+          >
+            <TimePicker
+              format={"HH:mm"}
+              value={value}
+              onChange={onChange}
+              popupStyle={{ display: "none" }}
+              changeOnBlur={true}
+            />
+          </Form.Item>
+          <Form.Item
+            label="End Time (HH:MM)"
+            name="endTime"
+            rules={[{ required: true }]}
+          >
+            <TimePicker
+              format={"HH:mm"}
+              value={value}
+              onChange={onChange}
+              popupStyle={{ display: "none" }}
+              changeOnBlur={true}
+            />
+          </Form.Item>
+        </Space>
+        <Space size={"large"}>
+          <Form.Item
+            label="Number of Pax"
+            name="numberPax"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <InputNumber min={1} step={1} />
+          </Form.Item>
+          <Form.Item
+            label="Number of Buses"
+            name="numberBus"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <InputNumber min={1} step={1} />
+          </Form.Item>
+        </Space>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit
