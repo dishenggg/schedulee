@@ -12,7 +12,7 @@ import {
 import Papa from "papaparse";
 import { ParseDateToFirestore } from "../../../utils/ParseTime";
 
-const AddMultipleTrips = ({ updateListOfTripsByDriver }) => {
+const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -282,7 +282,7 @@ const AddMultipleTrips = ({ updateListOfTripsByDriver }) => {
     },
   };
 
-  const onOk = async () => {
+  const postToFirebase = async () => {
     const updatedData = [];
 
     const postOneWay = async ({ type, tripDate, ...row }) => {
@@ -304,7 +304,10 @@ const AddMultipleTrips = ({ updateListOfTripsByDriver }) => {
       const trip1 = { ...row };
       const trip2 = { ...row };
 
-      trip2.startTime = trip2.startTime2;
+      trip2.startTime = trip2.startTime2; // Set start time of return trip
+      const temp = trip2.pickUpPoint; // Swap pickup point and dropoff point
+      trip2.pickUpPoint = trip2.dropOffPoint;
+      trip2.dropOffPoint = temp;
 
       const documentsToAdd = [trip1, trip2];
 
@@ -361,7 +364,6 @@ const AddMultipleTrips = ({ updateListOfTripsByDriver }) => {
     setConfirmLoading(true);
 
     const promises = data.map(async ({ status, ...row }) => {
-      // Remove status for firebase
       try {
         const firebaseData = prepRowForFirebase(row);
         if (row.type === "oneway") {
@@ -385,6 +387,21 @@ const AddMultipleTrips = ({ updateListOfTripsByDriver }) => {
     setFormSubmitted(true);
   };
 
+  const onOk = (e) => {
+    e.preventDefault();
+    if (formSubmitted) {
+      setOpenModal(false);
+      setFormSubmitted(false);
+      setData([]);
+    } else {
+      postToFirebase();
+    }
+  };
+
+  const onCancel = () => {
+    setOpenModal(false);
+    setData([]);
+  };
   return (
     <>
       <Button
@@ -402,21 +419,9 @@ const AddMultipleTrips = ({ updateListOfTripsByDriver }) => {
         title="Upload CSV of Trips' Details"
         okText={formSubmitted ? "Close" : "Submit"}
         cancelText="Cancel"
-        onCancel={() => {
-          setOpenModal(false);
-          setData([]);
-        }}
+        onCancel={onCancel}
         confirmLoading={confirmLoading}
-        onOk={(e) => {
-          e.preventDefault();
-          if (formSubmitted) {
-            setOpenModal(false);
-            setFormSubmitted(false);
-            setData([]);
-          } else {
-            onOk();
-          }
-        }}
+        onOk={onOk}
         width={1200}
       >
         <Dragger {...props}>

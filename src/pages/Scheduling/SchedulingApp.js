@@ -3,7 +3,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useEffect, useState, useRef } from "react";
 import { db } from "../../firebase";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { Title } from "../../components/Typography/Title";
 import {
   ParseTimeFromFirestoreToString,
@@ -16,6 +16,7 @@ export default function SchedulingApp({
   selectedDate,
   editable,
   listOfTripsByDriver,
+  drivers,
   updateListOfTripsByDriver,
 }) {
   const unscheduledTrips = "Unscheduled Trips";
@@ -25,12 +26,9 @@ export default function SchedulingApp({
 
   const populateDriverDetails = async () => {
     const res = {};
-    const driverQuery = await getDocs(collection(db, "Bus Drivers"));
-    driverQuery.docs
-      .map((doc) => doc.data())
-      .forEach((row) => {
-        res[row.busNumber] = { ...row };
-      });
+    drivers.forEach((row) => {
+      res[row.busNumber] = { ...row };
+    });
     setDriverDetails(res);
   };
 
@@ -75,7 +73,6 @@ export default function SchedulingApp({
       for (const trip of listOfTripsByDriver[driverId]) {
         const tripDT = ParseTimeFromFirestore(trip.startTime);
         const diffInMinutes = tripDT.diff(newTripDT, "minute");
-        console.log(diffInMinutes);
         if (diffInMinutes >= -15 && diffInMinutes <= 15) {
           message.error(
             `${driverId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
@@ -98,17 +95,22 @@ export default function SchedulingApp({
   };
 
   useEffect(() => {
-    populateDriverDetails();
-  }, []);
+    if (drivers.length > 0) {
+      populateDriverDetails();
+    }
+  }, [drivers]);
 
   const generateGrid = (driverId) => {
     const driverTrips = listOfTripsByDriver[driverId] || [];
-    const driverTripData = JSON.parse(JSON.stringify(driverTrips)); // Deep copy as reacts somehow calls generateGrid twice
+    const driverTripData = JSON.parse(JSON.stringify(driverTrips)); // Deep copy to not mutate values
 
     driverTripData.map((row) => {
       row.startTime = ParseTimeFromFirestoreToString(row.startTime);
       if (row.startTime2) {
         row.startTime2 = ParseTimeFromFirestoreToString(row.startTime2);
+      }
+      if (row.endTime) {
+        row.endTime = ParseTimeFromFirestoreToString(row.endTime);
       }
       return row;
     });
@@ -129,7 +131,7 @@ export default function SchedulingApp({
         <Title level={4}>
           {driverId === unscheduledTrips
             ? `${driverId}`
-            : `${driverId} (${busSize}) HP: ${contactNumber} ${remarks}`}
+            : `${driverId} (${busSize}) HP: ${contactNumber} ${remarks || ""}`}
         </Title>
         <div
           className={
@@ -146,10 +148,12 @@ export default function SchedulingApp({
               {
                 headerName: "Time",
                 field: "startTime",
+                maxWidth: 100,
                 dndSource: editable,
               },
               {
                 headerName: "Trip Description",
+                flex: 2,
                 field: "tripDescription",
               },
             ]}
