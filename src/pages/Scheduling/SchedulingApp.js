@@ -66,20 +66,36 @@ export default function SchedulingApp({
 
     // do nothing if it clashes
     if (driverId !== unscheduledTrips) {
-      const newTripDT = parseDateTimeFromStringToFireStore(
-        data.startTime,
-        selectedDate
-      );
-      for (const trip of listOfTripsByDriver[driverId]) {
-        const tripDT = ParseTimeFromFirestore(trip.startTime);
-        const diffInMinutes = tripDT.diff(newTripDT, "minute");
-        if (diffInMinutes >= -15 && diffInMinutes <= 15) {
-          message.error(
-            `${driverId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
-          );
-          return;
+        const newTripStartTime = parseDateTimeFromStringToFireStore(
+            data.startTime,
+            selectedDate
+        );
+        const newTripEndTime = parseDateTimeFromStringToFireStore(
+            data.endTime,
+            selectedDate
+        );
+
+        for (const trip of listOfTripsByDriver[driverId]) {
+            const tripStartTime = ParseTimeFromFirestore(trip.startTime);
+            const tripEndTime = ParseTimeFromFirestore(trip.endTime);
+            const diffNewStartOldEnd = newTripStartTime.diff(
+                tripEndTime,
+                'minute'
+            );
+            const diffNewEndOldStart = newTripEndTime.diff(
+                tripStartTime,
+                'minute'
+            );
+            if (
+                (diffNewStartOldEnd >= -15 && diffNewStartOldEnd <= 15) ||
+                (diffNewEndOldStart >= -15 && diffNewEndOldStart <= 15)
+            ) {
+                message.error(
+                    `${driverId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
+                );
+                return;
+            }
         }
-      }
     }
 
     if (driverId === unscheduledTrips) {
