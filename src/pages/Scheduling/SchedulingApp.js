@@ -74,7 +74,7 @@ export default function SchedulingApp({
         }
     };
 
-    const onRowDragEnd = (params) => {
+    const onRowDragEnd = async (params) => {
         try {
             const oldId = gridMapToDriverId[dragStartId];
             const newId = gridMapToDriverId[params.api.getGridId()];
@@ -122,7 +122,7 @@ export default function SchedulingApp({
             }
 
             if (newId === unscheduledTrips) {
-                runTransaction(db, async (transaction) => {
+                await runTransaction(db, async (transaction) => {
                     const docRef = doc(
                         db,
                         'Dates',
@@ -137,7 +137,7 @@ export default function SchedulingApp({
                     });
                 });
             } else {
-                runTransaction(db, async (transaction) => {
+                await runTransaction(db, async (transaction) => {
                     const docRef = doc(
                         db,
                         'Dates',
@@ -152,7 +152,6 @@ export default function SchedulingApp({
                     });
                 });
             }
-
             updateListOfTripsByDriver();
             setDragStarted(false);
             setDragStartId(null);
@@ -171,9 +170,16 @@ export default function SchedulingApp({
                       rowDrag: editable,
                   },
                   {
-                      headerName: 'Trip Description',
+                      headerName: 'Desc',
                       flex: 3,
                       field: 'tripDescription',
+                      autoHeight: true,
+                      wrapText: true,
+                  },
+                  {
+                      headerName: 'Pax',
+                      flex: 2,
+                      field: 'numberPax',
                   },
                   {
                       headerName: 'Assigned',
@@ -193,6 +199,8 @@ export default function SchedulingApp({
                       headerName: 'Trip Description',
                       flex: 2,
                       field: 'tripDescription',
+                      autoHeight: true,
+                      wrapText: true,
                   },
               ];
     };
