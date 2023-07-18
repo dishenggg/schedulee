@@ -93,6 +93,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
       const unassignedBus = [];
       const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
       const concatTrips2 = values.dropOffPoint + " --> " + values.pickUpPoint;
+      const TRIPTYPE = "standard";
       const tripDetails1 = {
         bus: unassignedBus,
         customerName: values.customerName,
@@ -101,8 +102,10 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
-        numberPax: values.numberPax,
-        numberBus: values.numberBus,
+        type: TRIPTYPE,
+        numPax: values.numberPax,
+        numBus: values.numberBus,
+        numBusAssigned: 0,
         tripDescription: concatTrips,
         startTime: ParseTimeToFirestore(values.time, values.date),
         endTime: ParseTimeToFirestore(values.time, values.date),
@@ -115,13 +118,17 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.dropOffPoint,
         dropOffPoint: values.pickUpPoint,
-        numberPax: values.numberPax,
-        numberBus: values.numberBus,
+        type: TRIPTYPE,
+        numPax: values.numberPax,
+        numBus: values.numberBus,
+        numBusAssigned: 0,
         tripDescription: concatTrips2,
         startTime: ParseTimeToFirestore(values.returnTime, values.date),
         endTime: ParseTimeToFirestore(values.returnTime, values.date),
       };
       const tripRef = collection(db, "Dates", date, "trips");
+      console.log(tripDetails1);
+      console.log(tripDetails2);
       Promise.all([
         addDoc(tripRef, tripDetails1),
         addDoc(tripRef, tripDetails2),
@@ -146,7 +153,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberBus: "1",
+          numberBus: 1,
         }}
       >
         <Form.Item

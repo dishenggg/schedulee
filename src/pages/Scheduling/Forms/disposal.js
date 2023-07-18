@@ -1,29 +1,86 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { PlusOutlined } from "@ant-design/icons";
 import {
   Form,
   Input,
   Button,
   DatePicker,
   TimePicker,
-  InputNumber,
   message,
+  InputNumber,
   Space,
+  Select,
+  Divider,
 } from "antd";
 import { Title } from "../../../components/Typography/Title";
-import dayjs from "dayjs";
-import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../../firebase";
 import {
-  ParseTimeToFirestore,
+  getDocs,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
+import {
   ParseDateToFirestore,
+  ParseTimeToFirestore,
 } from "../../../utils/ParseTime";
+import dayjs from "dayjs";
 
 const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [value, setValue] = useState(null);
+  const [customers, setCustomers] = useState([]);
+  const [name, setName] = useState("");
+  const inputRef = useRef(null);
+
+  const onNameChange = (event) => {
+    setName(event.target.value);
+  };
 
   const onChange = (time) => {
     setValue(time);
   };
+
+  const fetchCustomers = async () => {
+    console.log("Fetching");
+    const customerRef = collection(db, "Customers");
+    const snapshot = await getDocs(customerRef);
+    const customerData = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setCustomers(customerData);
+  };
+
+  const addCustomer = async (values) => {
+    try {
+      const customerRef = doc(db, "Customers", values);
+      const customerSnapshot = await getDoc(customerRef);
+
+      if (customerSnapshot.exists()) {
+        message.error(
+          "Customer already exists. Please check if it is a duplicate."
+        );
+      } else {
+        const customerDetails = {
+          customerName: values,
+          dateAdded: ParseTimeToFirestore(dayjs(), dayjs()),
+        };
+        console.log(customerDetails);
+        await setDoc(customerRef, customerDetails);
+        message.success("Customer added successfully!");
+        fetchCustomers();
+      }
+    } catch (error) {
+      message.error(error.toString());
+    }
+  };
+
+  useEffect(() => {
+    console.log("hi me");
+    fetchCustomers();
+  }, []);
 
   const disabledDate = (current) => {
     return current < dayjs().startOf("day");
@@ -33,21 +90,24 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
     try {
       const date = ParseDateToFirestore(values.date);
       const unassignedBus = [];
-      const disposalTrip = "disposal";
+      const TRIPTYPE = "disposal";
+
       const tripDetails = {
         bus: unassignedBus,
         customerName: values.customerName,
         contactName: values.contactPersonName,
         contactNumber: values.contactPersonPhoneNumber,
-        pickUpPoint: disposalTrip,
-        dropOffPoint: disposalTrip,
-        numberPax: values.numberPax,
-        numberBus: values.numberBus,
+        pickUpPoint: "",
+        dropOffPoint: "",
+        type: TRIPTYPE,
+        numPax: values.numberPax,
+        numBus: values.numberBus,
+        numBusAssigned: 0,
         tripDescription: values.tripDescription,
         startTime: ParseTimeToFirestore(values.startTime, values.date),
         endTime: ParseTimeToFirestore(values.endTime, values.date),
       };
-      // console.log(tripDetails);
+      console.log(tripDetails);
       const tripRef = collection(db, "Dates", date, "trips");
       await addDoc(tripRef, tripDetails);
       updateListOfTripsByDriver();
@@ -70,7 +130,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberBus: "1",
+          numberBus: 1,
         }}
       >
         <Form.Item
@@ -78,14 +138,54 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
           name="customerName"
           rules={[{ required: true }]}
         >
-          <Input />
+          <Select
+            showSearch
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? "")
+                .toLowerCase()
+                .localeCompare((optionB?.label ?? "").toLowerCase())
+            }
+            placeholder="Customer Name"
+            dropdownRender={(menu) => (
+              <>
+                {menu}
+                <Divider
+                  style={{
+                    margin: "8px 0",
+                  }}
+                />
+                <Space
+                  style={{
+                    padding: "0 8px 4px",
+                  }}
+                >
+                  <Input
+                    placeholder="New Customer"
+                    ref={inputRef}
+                    onChange={onNameChange}
+                  />
+                  <Button
+                    type="text"
+                    icon={<PlusOutlined />}
+                    onClick={() => addCustomer(name)}
+                  >
+                    Add Customer
+                  </Button>
+                </Space>
+              </>
+            )}
+            options={customers.map((customer) => ({
+              label: customer.customerName,
+              value: customer.customerName,
+            }))}
+          />
         </Form.Item>
         <Form.Item
           label="Description"
           name="description"
           rules={[{ required: true }]}
         >
-          <Input />
+          <Input placeholder="Input Description 'Volleyball Competition'" />
         </Form.Item>
         <Space size={"large"}>
           <Form.Item
@@ -93,7 +193,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
             name="contactPersonName"
             rules={[{ required: true }]}
           >
-            <Input />
+            <Input placeholder="Input Name" />
           </Form.Item>
           <Form.Item
             label="Contact Person Number"
@@ -106,7 +206,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
               },
             ]}
           >
-            <Input />
+            <Input placeholder="Input Number" />
           </Form.Item>
         </Space>
         <Form.Item
@@ -114,7 +214,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
           name="tripDescription"
           rules={[{ required: true }]}
         >
-          <Input />
+          <Input placeholder="Input Trip Description 'NUS to NTU to SMU'" />
         </Form.Item>
         <Space size={"small"}>
           <Form.Item
@@ -135,6 +235,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
               onChange={onChange}
               popupStyle={{ display: "none" }}
               changeOnBlur={true}
+              placeholder="Start Time"
             />
           </Form.Item>
           <Form.Item
@@ -148,6 +249,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
               onChange={onChange}
               popupStyle={{ display: "none" }}
               changeOnBlur={true}
+              placeholder="End Time"
             />
           </Form.Item>
         </Space>

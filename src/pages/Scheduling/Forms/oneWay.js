@@ -91,6 +91,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
       const date = ParseDateToFirestore(values.date);
       const unassignedBus = [];
       const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
+      const TRIPTYPE = "standard";
       const tripDetails = {
         bus: unassignedBus,
         customerName: values.customerName,
@@ -99,8 +100,10 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
-        numberPax: values.numberPax,
-        numberBus: values.numberBus,
+        type: TRIPTYPE,
+        numPax: values.numberPax,
+        numBus: values.numberBus,
+        numBusAssigned: 0,
         tripDescription: concatTrips,
         startTime: ParseTimeToFirestore(values.time, values.date),
         endTime: ParseTimeToFirestore(values.time, values.date),
@@ -128,7 +131,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberBus: "1",
+          numberBus: 1,
         }}
       >
         <Form.Item

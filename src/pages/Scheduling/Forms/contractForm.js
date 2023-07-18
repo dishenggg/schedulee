@@ -39,8 +39,8 @@ const ContractForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
     const trip = {
       dayOfWeek: values.dayOfWeek,
       time: values.time,
-      numberPax: values.numberPax,
-      numberBus: values.numberBus,
+      numPax: values.numberPax,
+      numBus: values.numberBus,
       location: values.location,
     };
     setRecurringTrips([...recurringTrips, trip]);
@@ -66,8 +66,8 @@ const ContractForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         recurringTrips: recurringTrips.map((trip) => ({
           dayOfWeek: trip.dayOfWeek,
           time: dayjs(trip.time).toDate(),
-          numberPax: trip.numberPax,
-          numberBus: trip.numberBus,
+          numPax: trip.numberPax,
+          numBus: trip.numberBus,
           location: trip.location,
         })),
       };
@@ -94,7 +94,7 @@ const ContractForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberBus: "1",
+          numberBus: 1,
         }}
       >
         <Form.Item
@@ -171,7 +171,7 @@ const ContractForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
                   </Form.Item>
                   <Form.Item
                     label="Number of Buses"
-                    name={[field.name, "numberBus"]}
+                    name="numberBus"
                     rules={[{ required: true }]}
                   >
                     <InputNumber min={1} step={1} />
