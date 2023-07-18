@@ -18,6 +18,9 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [data, setData] = useState([]);
   const { Dragger } = Upload;
+  const renderBuses = (val) => {
+        return <span>{val ? val.join(', ') : null}</span>;
+    };
 
   const oneWayColumns = [
     {
@@ -64,6 +67,11 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
       title: "Start Time",
       dataIndex: "startTime",
     },
+    {
+      title: 'buses',
+      dataIndex: 'bus',
+    },
+    
   ];
 
   const oneWayIndex = oneWayColumns.map((col) => col.dataIndex);
@@ -114,8 +122,16 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
       dataIndex: "startTime",
     },
     {
+      title: "buses",
+      dataIndex: "bus",
+    },
+    {
       title: "Start Time 2",
       dataIndex: "startTime2",
+    },
+    {
+      title: "buses 2",
+      dataIndex: "bus2",
     },
   ];
 
@@ -123,44 +139,56 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
 
   const disposalColumns = [
     {
-      title: "Type",
-      dataIndex: "type",
+      title: 'Type',
+      dataIndex: 'type',
     },
     {
-      title: "Customer Name",
-      dataIndex: "customerName",
+      title: 'Customer Name',
+      dataIndex: 'customerName',
     },
     {
-      title: "Description",
-      dataIndex: "description",
+      title: 'Description',
+      dataIndex: 'description',
     },
     {
-      title: "Contact Name",
-      dataIndex: "contactName",
+      title: 'Contact Name',
+      dataIndex: 'contactName',
     },
     {
-      title: "Contact Number",
-      dataIndex: "contactNumber",
+      title: 'Contact Number',
+      dataIndex: 'contactNumber',
     },
     {
-      title: "Date",
-      dataIndex: "tripDate",
+      title: 'Date',
+      dataIndex: 'tripDate',
     },
     {
-      title: "Start Time",
-      dataIndex: "startTime",
+      title: 'Pick Up',
+      dataIndex: 'pickUpPoint',
     },
     {
-      title: "End Time",
-      dataIndex: "endTime",
+      title: 'Drop Off',
+      dataIndex: 'dropOffPoint',
     },
     {
-      title: "Pick Up",
-      dataIndex: "pickUpPoint",
+      title: 'No. Pax',
+      dataIndex: 'numPax',
     },
     {
-      title: "Drop Off",
-      dataIndex: "dropOffPoint",
+      title: 'No. Bus',
+      dataIndex: 'numBus',
+    },
+    {
+      title: 'Start Time',
+      dataIndex: 'startTime',
+    },
+    {
+      title: 'End Time',
+      dataIndex: 'endTime',
+    },
+    {
+      title: 'buses',
+      dataIndex: 'bus',
     },
   ];
 
@@ -250,10 +278,25 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
         trip["status"] = "Trip type is wrong.";
       }
       currentIndex.forEach((header, index) => {
+        if (header === 'bus' || header === 'bus2') {
+            if (row[index] === '' || !row[index]) {
+                trip[header] = [];
+            } else {
+                trip[header] = row[index].split(',');
+            }
+            return;
+        }
+        if (header === 'numberBus' || header === 'numberPax') {
+            trip[header] = parseInt(row[index]);
+            return;
+        }
         trip[header] = row[index];
       });
+      trip.numAssigned = trip.bus.length;
 
-      trip["bus"] = "";
+      if (trip.numAssigned > trip.numberBus) {
+          trip.status = 'You have more buses assigned than required.';
+      }
       return trip;
     });
     return res;
@@ -285,18 +328,19 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
   const postToFirebase = async () => {
     const updatedData = [];
 
-    const postOneWay = async ({ type, tripDate, ...row }) => {
+    const postOneWay = async ({ key, type, tripDate, ...row }) => {
       const tripRef = collection(db, "Dates", tripDate, "trips");
       const concatTrips = `${row.pickUpPoint} --> ${row.dropOffPoint}`;
       const updatedValues = {
         ...row,
         endTime: row.startTime,
         tripDescription: concatTrips,
+        type: "standard",
       };
       await addDoc(tripRef, updatedValues);
     };
 
-    const postTwoWay = async ({ type, tripDate, ...row }) => {
+    const postTwoWay = async ({ key, type, tripDate, ...row }) => {
       // post two OneWays
       const tripRef = collection(db, "Dates", tripDate, "trips");
       const batch = writeBatch(db);
@@ -305,6 +349,8 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
       const trip2 = { ...row };
 
       trip2.startTime = trip2.startTime2; // Set start time of return trip
+      trip2.bus = trip2.bus2;
+      
       const temp = trip2.pickUpPoint; // Swap pickup point and dropoff point
       trip2.pickUpPoint = trip2.dropOffPoint;
       trip2.dropOffPoint = temp;
@@ -313,9 +359,12 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
 
       documentsToAdd.forEach((docData) => {
         delete docData.startTime2;
+        delete docData.bus2;
+        
         const concatTrips = `${docData.pickUpPoint} --> ${docData.dropOffPoint}`;
         docData.endTime = docData.startTime;
         docData.tripDescription = concatTrips;
+        docData.type = "standard"
 
         const newDocRef = doc(tripRef);
         batch.set(newDocRef, docData);
@@ -324,12 +373,13 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
       await batch.commit();
     };
 
-    const postDisposal = async ({ type, tripDate, ...row }) => {
+    const postDisposal = async ({ key, type, tripDate, ...row }) => {
       const tripRef = collection(db, "Dates", tripDate, "trips");
       const updatedValues = {
         ...row,
+        type: "disposal",
       };
-      await setDoc(tripRef, updatedValues);
+      await addDoc(tripRef, updatedValues);
     };
 
     const prepRowForFirebase = (row) => {
