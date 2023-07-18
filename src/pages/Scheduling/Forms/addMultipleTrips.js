@@ -346,6 +346,7 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
                 ...row,
                 endTime: row.startTime,
                 tripDescription: concatTrips,
+                type: "standard",
             };
             await addDoc(tripRef, updatedValues);
         };
@@ -373,6 +374,7 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
                 const concatTrips = `${docData.pickUpPoint} --> ${docData.dropOffPoint}`;
                 docData.endTime = docData.startTime;
                 docData.tripDescription = concatTrips;
+                docData.type = "standard"
                 const newDocRef = doc(tripRef);
                 batch.set(newDocRef, docData);
             });
@@ -384,8 +386,9 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
             const tripRef = collection(db, 'Dates', tripDate, 'trips');
             const updatedValues = {
                 ...row,
+                type: "disposal"
             };
-            await setDoc(tripRef, updatedValues);
+            await addDoc(tripRef, updatedValues);
         };
 
         const prepRowForFirebase = (row) => {
