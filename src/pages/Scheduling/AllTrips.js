@@ -55,12 +55,12 @@ function AllTrips({ trips, selectedDate }) {
     },
     {
       headerName: "No. Pax",
-      field: "numberPax",
+      field: "numPax",
       flex: 1,
     },
     {
       headerName: "No. Bus",
-      field: "numberBus",
+      field: "numBus",
       flex: 1,
     },
     {

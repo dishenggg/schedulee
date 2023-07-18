@@ -101,8 +101,8 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
         type: TRIPTYPE,
-        numPax: values.numberPax,
-        numBus: values.numberBus,
+        numPax: values.numPax,
+        numBus: values.numBus,
         numBusAssigned: 0,
         tripDescription: concatTrips,
         startTime: ParseTimeToFirestore(values.time, values.date),
@@ -131,7 +131,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberBus: 1,
+          numBus: 1,
         }}
       >
         <Form.Item
@@ -261,7 +261,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         <Space size={"large"}>
           <Form.Item
             label="Number of Pax"
-            name="numberPax"
+            name="numPax"
             rules={[
               {
                 required: true,
@@ -272,7 +272,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
           </Form.Item>
           <Form.Item
             label="Number of Buses"
-            name="numberBus"
+            name="numBus"
             rules={[
               {
                 required: true,
