@@ -17,6 +17,7 @@ const Scheduling = () => {
     const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
     const [listOfDrivers, setListOfDrivers] = useState([]);
     const [listOfTrips, setListOfTrips] = useState([]);
+    const [listOfSubCons, setListOfSubCons] = useState([]);
 
     const handleDateChange = (date, dateString) => {
         setSelectedDate(date.toDate());
@@ -44,16 +45,35 @@ const Scheduling = () => {
                 trip.bus.includes(driver.id)
             );
         });
+
+        listOfSubCons.forEach((subCon) => {
+            res[subCon.id] = listOfTrips.filter((trip) =>
+                trip.bus.includes(subCon.id)
+            );
+        });
         setListOfTripsByDriver(res);
     };
 
     const populateListOfDrivers = async () => {
         const driverQuery = await getDocs(collection(db, 'Bus Drivers'));
+
         const drivers = driverQuery.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
         }));
+
         setListOfDrivers(drivers);
+    };
+
+    const populateListOfSubCons = async () => {
+        const subconQuery = await getDocs(collection(db, 'Sub Cons'));
+
+        const subCons = subconQuery.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+
+        setListOfSubCons(subCons);
     };
 
     const populateListOfTrips = async () => {
@@ -79,16 +99,18 @@ const Scheduling = () => {
     const updateListOfTripsByDriver = () => {
         populateListOfTrips();
         populateListOfDrivers();
+        populateListOfSubCons();
     };
 
     useEffect(() => {
         populateListOfDrivers();
+        populateListOfSubCons();
         populateListOfTrips();
     }, [selectedDate]);
 
     useEffect(() => {
         populateListOfTripsByDriver();
-    }, [selectedDate, listOfDrivers, listOfTrips]);
+    }, [selectedDate, listOfDrivers, listOfTrips, listOfSubCons]);
 
     return (
         <>
@@ -131,6 +153,7 @@ const Scheduling = () => {
                                 editable={editable}
                                 listOfTripsByDriver={listOfTripsByDriver}
                                 drivers={listOfDrivers}
+                                subCons={listOfSubCons}
                                 updateListOfTripsByDriver={
                                     updateListOfTripsByDriver
                                 }
