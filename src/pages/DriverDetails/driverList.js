@@ -82,8 +82,8 @@ function DriverList({ drivers, updateDriverList }) {
             message.error("Failed to update driver: " + error);
           });
       }
-    } catch (err) {
-      message.error(err);
+    } catch (error) {
+      message.error(error.toString());
     }
     updateDriverList();
   };
