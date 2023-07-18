@@ -100,8 +100,8 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         pickUpPoint: "",
         dropOffPoint: "",
         type: TRIPTYPE,
-        numPax: values.numberPax,
-        numBus: values.numberBus,
+        numPax: values.numPax,
+        numBus: values.numBus,
         numBusAssigned: 0,
         tripDescription: values.tripDescription,
         startTime: ParseTimeToFirestore(values.startTime, values.date),
@@ -130,7 +130,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberBus: 1,
+          numBus: 1,
         }}
       >
         <Form.Item
@@ -256,7 +256,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
         <Space size={"large"}>
           <Form.Item
             label="Number of Pax"
-            name="numberPax"
+            name="numPax"
             rules={[
               {
                 required: true,
@@ -267,7 +267,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
           </Form.Item>
           <Form.Item
             label="Number of Buses"
-            name="numberBus"
+            name="numBus"
             rules={[
               {
                 required: true,
