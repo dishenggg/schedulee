@@ -102,7 +102,7 @@ const Disposal = ({ setOpenModal, updateListOfTripsByDriver }) => {
               {
                 required: true,
                 pattern: /^[689]\d{7}$/,
-                message: "Check '${label}' Format",
+                message: "Check Phone Number Format",
               },
             ]}
           >
