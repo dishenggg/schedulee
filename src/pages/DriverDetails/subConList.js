@@ -55,14 +55,6 @@ function SubConList({ subCons, updateSubConList }) {
     if (!(row.busSize > 0)) {
       throw new Error("Bus Size should be atleast 1");
     }
-
-    if (
-      !(row.minSalary > 0) ||
-      !(row.normalSalary > 0) ||
-      !(row.peakHourSalary > 0)
-    ) {
-      throw new Error("Salary must be above 0");
-    }
     return true;
   };
 
@@ -78,8 +70,8 @@ function SubConList({ subCons, updateSubConList }) {
           message.error("Failed to update sub con: " + error);
         });
       }
-    } catch (err) {
-      message.error(err);
+    } catch (error) {
+      message.error(error.toString());
     }
     updateSubConList();
   };
@@ -131,7 +123,7 @@ function SubConList({ subCons, updateSubConList }) {
           ? "ag-theme-alpine-dark"
           : "ag-theme-alpine"
       }
-      style={{ height: "400px", width: "100%", padding: "10px 5px 20px 5px", }}
+      style={{ height: "400px", width: "100%", padding: "10px 5px 20px 5px" }}
     >
       <AgGridReact
         rowData={subCons}
