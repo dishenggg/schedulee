@@ -85,7 +85,7 @@ export default function SchedulingApp({
                 return;
             }
 
-            // do nothing if it clashes
+            // Do nothing if it clashes
             if (newId !== unscheduledTrips) {
                 const newTripStartTime = parseDateTimeFromStringToFireStore(
                     data.startTime,
@@ -121,6 +121,17 @@ export default function SchedulingApp({
                     }
                 }
             }
+
+            // Do nothing if busSize is smaller than required
+            const driverObj = driverDetails[newId];
+            const driverData = { ...driverObj }; // it doesnt work without this i dont know why
+            const busSize = driverData.busSize;
+            if (data.numPax > busSize) {
+                message.error(
+                    `${newId} cannot be scheduled this trip as the bus size is too small.`
+                );
+                return;
+            }
             const docRef = doc(db, 'Dates', selectedDate, 'trips', data.id);
             if (newId === unscheduledTrips) {
                 await runTransaction(db, async (transaction) => {
@@ -130,12 +141,22 @@ export default function SchedulingApp({
                         numBusAssigned: docSnapshot.data().numBusAssigned - 1,
                     });
                 });
-            } else {
+            } else if (oldId === unscheduledTrips) {
                 await runTransaction(db, async (transaction) => {
                     const docSnapshot = await transaction.get(docRef);
                     transaction.update(docSnapshot.ref, {
                         bus: arrayUnion(newId),
                         numBusAssigned: docSnapshot.data().numBusAssigned + 1,
+                    });
+                });
+            } else {
+                await runTransaction(db, async (transaction) => {
+                    const docSnapshot = await transaction.get(docRef);
+                    transaction.update(docSnapshot.ref, {
+                        bus: arrayRemove(oldId),
+                    });
+                    transaction.update(docSnapshot.ref, {
+                        bus: arrayUnion(newId),
                     });
                 });
             }
