@@ -10,9 +10,11 @@ const docSnap = await getDoc(docRef);
 const Salary = () => {
   return (
     <>
-      <Title>Salary Page</Title>
-      <Space>
-        <Title level={5}>Choose Month: </Title>
+      <Title level={2}>Salary Page</Title>
+      <Space align="center">
+        <Title level={3} style={{ marginTop: "12px" }}>
+          Choose Month:{" "}
+        </Title>
         <DatePicker picker="month" />
         <Button type="primary" icon={<SendOutlined />}>
           Generate
