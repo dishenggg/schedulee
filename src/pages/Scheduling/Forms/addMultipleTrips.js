@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button, Modal, Upload, message, Table } from 'antd';
 import { UploadOutlined, FileAddOutlined } from '@ant-design/icons';
 import { db } from '../../../firebase';
@@ -6,11 +6,14 @@ import { addDoc, writeBatch, collection, doc } from 'firebase/firestore';
 import Papa from 'papaparse';
 import { ParseDateToFirestore } from '../../../utils/ParseTime';
 
-const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
+const AddMultipleTrips = ({ drivers, subCons, updateListOfTripsByDriver }) => {
     const [openModal, setOpenModal] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [formSubmitted, setFormSubmitted] = useState(false);
     const [data, setData] = useState([]);
+    const listOfDriverIds = useMemo(() => {
+        return new Set([...drivers, ...subCons].map((driver) => driver.id));
+    }, [drivers, subCons]);
     const { Dragger } = Upload;
 
     const renderBuses = (val) => {
@@ -266,6 +269,16 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
         }
     };
 
+    const checkBusExists = (listOfBus) => {
+        for (const i in listOfBus) {
+            const bus = listOfBus[i];
+            if (!listOfDriverIds.has(bus)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     const parseRowsToTrips = (parsedRows) => {
         const res = parsedRows.map((row, i) => {
             const trip = {};
@@ -279,22 +292,29 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
                 currentIndex = disposalIndex;
             } else {
                 currentIndex = displayIndex;
-                trip['status'] = 'Trip type is wrong.';
+                trip.status = 'Trip type is wrong.';
             }
             currentIndex.forEach((header, index) => {
                 if (header === 'skip') return;
+
                 if (header === 'bus' || header === 'bus2') {
                     if (row[index] === '' || !row[index]) {
                         trip[header] = [];
                     } else {
                         trip[header] = row[index].split(',');
+                        if (!checkBusExists(trip[header])) {
+                            trip.status =
+                                'Bus assigned does not exists. Please add it to the drivers list';
+                        }
                     }
                     return;
                 }
+
                 if (header === 'numBus' || header === 'numPax') {
                     trip[header] = parseInt(row[index]);
                     return;
                 }
+
                 trip[header] = row[index];
             });
             trip.numBusAssigned = trip.bus.length;
