@@ -271,7 +271,6 @@ export default function SchedulingApp({
             res.push('\n\n');
         });
         res.pop();
-        console.log(res);
         navigator.clipboard.writeText(res.join(''));
     };
     const generateGrid = (driverId, style) => {
