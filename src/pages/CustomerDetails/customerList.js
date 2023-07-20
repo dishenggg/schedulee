@@ -24,26 +24,6 @@ function CustomerList({ customers, updateCustomerList }) {
       flex: 4,
     },
     {
-      headerName: "Total Trips",
-      field: "",
-      flex: 3,
-    },
-    {
-      headerName: "Trips fulfilled by Drivers",
-      field: "",
-      flex: 3,
-    },
-    {
-      headerName: "Trips fulfilled by Sub Con",
-      field: "",
-      flex: 3,
-    },
-    {
-      headerName: "Total Trips Last Month",
-      field: "",
-      flex: 3,
-    },
-    {
       headerName: "History",
       field: "history",
       flex: 1,
