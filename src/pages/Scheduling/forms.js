@@ -1,6 +1,6 @@
 import OneWayForm from "./Forms/oneWay.js";
 import TwoWayForm from "./Forms/twoWay.js";
-import Disposal from "./Forms/disposal.js";
+import DisposalAndTour from "./Forms/disposalAndTour.js";
 
 export function TripForm({
   value = "1",
@@ -23,7 +23,7 @@ export function TripForm({
     );
   } else if (value === "3") {
     return (
-      <Disposal
+      <DisposalAndTour
         setOpenModal={setOpenModal}
         updateListOfTripsByDriver={updateListOfTripsByDriver}
       />
