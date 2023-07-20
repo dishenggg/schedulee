@@ -209,49 +209,44 @@ export default function SchedulingApp({
     };
 
     const columnDefs = (driverId) => {
-        if (driverId == unscheduledTrips) {
+        const cols = [
+            {
+                headerName: 'Time',
+                valueGetter: (params) => {
+                    return params.data.type === 'disposal'
+                        ? `${params.data.startTime} - ${params.data.endTime}`
+                        : `${params.data.startTime}`;
+                },
+                maxWidth: 145,
+                rowDrag: editable,
+                autoHeight: true,
+                wrapText: true,
+            },
+            {
+                headerName: 'Trip Description',
+                flex: 22,
+                field: 'tripDescription',
+                autoHeight: true,
+                wrapText: true,
+            },
+        ];
+        if (driverId !== unscheduledTrips) {
+            return cols;
+        } else {
             return [
-                {
-                    headerName: 'Time',
-                    field: 'startTime',
-                    maxWidth: 100,
-                    rowDrag: editable,
-                },
-                {
-                    headerName: 'Desc',
-                    flex: 11,
-                    field: 'tripDescription',
-                    autoHeight: true,
-                    wrapText: true,
-                },
+                ...cols,
                 {
                     headerName: 'Pax',
-                    flex: 2,
+                    flex: 5,
                     field: 'numPax',
                 },
                 {
                     headerName: '',
-                    flex: 2,
+                    flex: 5,
                     valueGetter: (params) =>
                         `${params.data.numBus - params.data.numBusAssigned}/${
                             params.data.numBus
                         }`,
-                },
-            ];
-        } else {
-            return [
-                {
-                    headerName: 'Time',
-                    field: 'startTime',
-                    maxWidth: 100,
-                    rowDrag: editable,
-                },
-                {
-                    headerName: 'Trip Description',
-                    flex: 2,
-                    field: 'tripDescription',
-                    autoHeight: true,
-                    wrapText: true,
                 },
             ];
         }
@@ -265,9 +260,14 @@ export default function SchedulingApp({
         )}/${selectedDate.substring(2, 4)}`;
         const res = [textDate, '\n'];
         driverTripData.forEach((data) => {
-            res.push(`Time: ${data.startTime}\n`);
-            res.push(`From: ${data.pickUpPoint}\n`);
-            res.push(`To: ${data.dropOffPoint}`);
+            if (data.type === 'disposal') {
+                res.push(`Time: ${data.startTime} to ${data.endTime}\n`);
+                res.push(`Disposal: ${data.tripDescription}`);
+            } else {
+                res.push(`Time: ${data.startTime}\n`);
+                res.push(`From: ${data.pickUpPoint}\n`);
+                res.push(`To: ${data.dropOffPoint}`);
+            }
             res.push('\n\n');
         });
         res.pop();
