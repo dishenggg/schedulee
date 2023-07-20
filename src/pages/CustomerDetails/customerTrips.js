@@ -66,7 +66,7 @@ const CustomerTrips = ({ trips }) => {
     {
       headerName: "Drop Off",
       field: "dropOffPoint",
-      flex: 4,
+      flex: 3,
     },
     {
       headerName: "No. Pax",
@@ -79,9 +79,21 @@ const CustomerTrips = ({ trips }) => {
       flex: 1,
     },
     {
-      headerName: "Bus",
-      field: "bus",
+      headerName: "Price",
+      field: "price",
+      flex: 1,
+    },
+    {
+      headerName: "GST",
+      field: "gst",
+      flex: 1,
+    },
+    {
+      headerName: "Total Amount",
+      field: "totalAmount",
       flex: 2,
+      //https://www.ag-grid.com/react-data-grid/cell-expressions/
+      //valueGetter: "data.numBus * data.price + data.gst",
     },
   ];
 
