@@ -23,9 +23,8 @@ const Scheduling = () => {
     setSelectedDate(date.toDate());
 
     const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
 
-    if (selectedDate.setHours(0, 0, 0, 0) < currentDate) {
+    if (date.toDate().setHours(0, 0, 0, 0) < currentDate.setHours(0, 0, 0, 0)) {
       setEditable(false);
     } else {
       setEditable(true);
