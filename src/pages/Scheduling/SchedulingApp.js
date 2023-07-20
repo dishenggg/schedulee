@@ -15,7 +15,8 @@ import {
     parseDateTimeFromStringToFireStore,
     ParseTimeFromFirestore,
 } from '../../utils/ParseTime';
-import { message } from 'antd';
+import { Button, message } from 'antd';
+import { CopyOutlined } from '@ant-design/icons';
 
 export default function SchedulingApp({
     selectedDate,
@@ -256,6 +257,23 @@ export default function SchedulingApp({
         }
     };
 
+    const copyToText = (e, driverTripData) => {
+        e.preventDefault();
+        const textDate = `${selectedDate.substring(
+            0,
+            2
+        )}/${selectedDate.substring(2, 4)}`;
+        const res = [textDate, '\n'];
+        driverTripData.forEach((data) => {
+            res.push(`Time: ${data.startTime}\n`);
+            res.push(`From: ${data.pickUpPoint}\n`);
+            res.push(`To: ${data.dropOffPoint}`);
+            res.push('\n\n');
+        });
+        res.pop();
+        console.log(res);
+        navigator.clipboard.writeText(res.join(''));
+    };
     const generateGrid = (driverId, style) => {
         const driverTrips = listOfTripsByDriver[driverId] || [];
         const driverTripData = JSON.parse(JSON.stringify(driverTrips)); // Deep copy to not mutate values
@@ -290,7 +308,16 @@ export default function SchedulingApp({
                         : `${driverId} (${busSize}) HP: ${contactNumber} ${
                               remarks || ''
                           }`}
+                    {driverId !== unscheduledTrips && (
+                        <Button
+                            onClick={(e) => copyToText(e, driverTripData)}
+                            shape={'circle'}
+                        >
+                            <CopyOutlined />
+                        </Button>
+                    )}
                 </Title>
+
                 <div
                     className={
                         localStorage.getItem('darkMode') === 'true'
