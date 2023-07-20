@@ -27,7 +27,6 @@ const AddCustomer = ({ updateCustomerList }) => {
           ...values,
           dateAdded: ParseTimeToFirestore(dayjs(), dayjs()),
         };
-        console.log(customerDetails);
         await setDoc(customerRef, customerDetails);
         updateCustomerList();
         message.success("Customer added successfully!");
@@ -36,7 +35,6 @@ const AddCustomer = ({ updateCustomerList }) => {
       }
     } catch (error) {
       message.error(error.toString());
-
     }
   };
 

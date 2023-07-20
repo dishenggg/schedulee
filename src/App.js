@@ -9,6 +9,7 @@ import Salary from ".//pages/Salary/";
 import Scheduling from ".//pages/Scheduling/";
 import BusDetails from ".//pages/BusDetails/";
 import CustomerDetails from ".//pages/CustomerDetails/";
+import CustomerDetailsPage from "./pages/CustomerDetails/customerDetailsPage";
 import DriverDetails from ".//pages/DriverDetails/";
 import Login from ".//pages/Login/";
 import NotFound from "./pages/NotFound";
@@ -45,6 +46,10 @@ function App() {
                 <Route path="/scheduling" element={<Scheduling />} />
                 <Route path="/bus-details" element={<BusDetails />} />
                 <Route path="/customer-details" element={<CustomerDetails />} />
+                <Route
+                  path="/customer-details/:customerName"
+                  element={<CustomerDetailsPage />}
+                />
                 <Route path="/driver-details" element={<DriverDetails />} />
               </Route>
               <Route path="/login" element={<Login />} />
