@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { PlusOutlined } from "@ant-design/icons";
 import {
   Form,
   Input,
@@ -7,10 +8,20 @@ import {
   TimePicker,
   message,
   InputNumber,
+  Space,
+  Select,
+  Divider,
 } from "antd";
 import { Title } from "../../../components/Typography/Title";
 import { db } from "../../../firebase";
-import { addDoc, collection } from "firebase/firestore";
+import {
+  getDocs,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
 import {
   ParseDateToFirestore,
   ParseTimeToFirestore,
@@ -19,6 +30,53 @@ import dayjs from "dayjs";
 
 const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [value, setValue] = useState(null);
+  const [customers, setCustomers] = useState([]);
+  const [name, setName] = useState("");
+  const inputRef = useRef(null);
+
+  const onNameChange = (event) => {
+    setName(event.target.value);
+  };
+
+  const fetchCustomers = async () => {
+    console.log("Fetching");
+    const customerRef = collection(db, "Customers");
+    const snapshot = await getDocs(customerRef);
+    const customerData = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setCustomers(customerData);
+  };
+
+  const addCustomer = async (values) => {
+    try {
+      const customerRef = doc(db, "Customers", values);
+      const customerSnapshot = await getDoc(customerRef);
+
+      if (customerSnapshot.exists()) {
+        message.error(
+          "Customer already exists. Please check if it is a duplicate."
+        );
+      } else {
+        const customerDetails = {
+          customerName: values,
+          dateAdded: ParseTimeToFirestore(dayjs(), dayjs()),
+        };
+        console.log(customerDetails);
+        await setDoc(customerRef, customerDetails);
+        message.success("Customer added successfully!");
+        fetchCustomers();
+      }
+    } catch (error) {
+      message.error(error.toString());
+    }
+  };
+
+  useEffect(() => {
+    console.log("hi me");
+    fetchCustomers();
+  }, []);
 
   const onChange = (time) => {
     setValue(time);
@@ -32,9 +90,10 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const handleSubmit = async (values) => {
     try {
       const date = ParseDateToFirestore(values.date);
-      const unassignedBus = "";
+      const unassignedBus = [];
       const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
       const concatTrips2 = values.dropOffPoint + " --> " + values.pickUpPoint;
+      const TRIPTYPE = "standard";
       const tripDetails1 = {
         bus: unassignedBus,
         customerName: values.customerName,
@@ -43,8 +102,10 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.pickUpPoint,
         dropOffPoint: values.dropOffPoint,
-        numberPax: values.numberPax,
-        numberBus: values.numberBus,
+        type: TRIPTYPE,
+        numPax: values.numPax,
+        numBus: values.numBus,
+        numBusAssigned: 0,
         tripDescription: concatTrips,
         startTime: ParseTimeToFirestore(values.time, values.date),
         endTime: ParseTimeToFirestore(values.time, values.date),
@@ -57,15 +118,17 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         contactNumber: values.contactPersonPhoneNumber,
         pickUpPoint: values.dropOffPoint,
         dropOffPoint: values.pickUpPoint,
-        numberPax: values.numberPax,
-        numberBus: values.numberBus,
+        type: TRIPTYPE,
+        numPax: values.numPax,
+        numBus: values.numBus,
+        numBusAssigned: 0,
         tripDescription: concatTrips2,
         startTime: ParseTimeToFirestore(values.returnTime, values.date),
         endTime: ParseTimeToFirestore(values.returnTime, values.date),
       };
       const tripRef = collection(db, "Dates", date, "trips");
-      // await addDoc(tripRef, tripDetails1);
-      // await addDoc(tripRef, tripDetails2);
+      console.log(tripDetails1);
+      console.log(tripDetails2);
       Promise.all([
         addDoc(tripRef, tripDetails1),
         addDoc(tripRef, tripDetails2),
@@ -90,7 +153,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         onFinishFailed={onFinishFailed}
         layout="vertical"
         initialValues={{
-          numberBus: "1",
+          numBus: 1,
         }}
       >
         <Form.Item
@@ -98,108 +161,158 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
           name="customerName"
           rules={[{ required: true }]}
         >
-          <Input />
+          <Select
+            showSearch
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? "")
+                .toLowerCase()
+                .localeCompare((optionB?.label ?? "").toLowerCase())
+            }
+            placeholder="Customer Name"
+            dropdownRender={(menu) => (
+              <>
+                {menu}
+                <Divider
+                  style={{
+                    margin: "8px 0",
+                  }}
+                />
+                <Space
+                  style={{
+                    padding: "0 8px 4px",
+                  }}
+                >
+                  <Input
+                    placeholder="New Customer"
+                    ref={inputRef}
+                    onChange={onNameChange}
+                  />
+                  <Button
+                    type="text"
+                    icon={<PlusOutlined />}
+                    onClick={() => addCustomer(name)}
+                  >
+                    Add Customer
+                  </Button>
+                </Space>
+              </>
+            )}
+            options={customers.map((customer) => ({
+              label: customer.customerName,
+              value: customer.customerName,
+            }))}
+          />
         </Form.Item>
         <Form.Item
           label="Description"
           name="description"
           rules={[{ required: true }]}
         >
-          <Input />
+          <Input placeholder="Input Description 'Volleyball Competition'" />
         </Form.Item>
-        <Form.Item
-          label="Contact Person Name"
-          name="contactPersonName"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Contact Person Number"
-          name="contactPersonPhoneNumber"
-          rules={[
-            {
-              required: true,
-              pattern: /^[689]\d{7}$/,
-              message: "Check '${label}' Format",
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Pick Up Point"
-          name="pickUpPoint"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Drop Off Point"
-          name="dropOffPoint"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Date (YYYY-MM-DD)"
-          name="date"
-          rules={[{ required: true }]}
-        >
-          <DatePicker disabledDate={disabledDate} />
-        </Form.Item>
-        <Form.Item
-          label="Pick Up Time (HH:MM)"
-          name="time"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <TimePicker
-            format={"HH:mm"}
-            value={value}
-            onChange={onChange}
-            popupStyle={{ display: "none" }}
-            changeOnBlur={true}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Return Time (HH:MM)"
-          name="returnTime"
-          rules={[{ required: true }]}
-        >
-          <TimePicker
-            format={"HH:mm"}
-            value={value}
-            onChange={onChange}
-            popupStyle={{ display: "none" }}
-            changeOnBlur={true}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Number of Pax"
-          name="numberPax"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <InputNumber min={1} step={1} />
-        </Form.Item>
-        <Form.Item
-          label="Number of Buses"
-          name="numberBus"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <InputNumber min={1} step={1} />
-        </Form.Item>
+        <Space size={"large"}>
+          <Form.Item
+            label="Contact Person Name"
+            name="contactPersonName"
+            rules={[{ required: true }]}
+          >
+            <Input placeholder="Input Name" />
+          </Form.Item>
+          <Form.Item
+            label="Contact Person Number"
+            name="contactPersonPhoneNumber"
+            rules={[
+              {
+                required: true,
+                pattern: /^[689]\d{7}$/,
+                message: "Check Phone Number Format",
+              },
+            ]}
+          >
+            <Input placeholder="Input Number" />
+          </Form.Item>
+        </Space>
+        <Space size={"large"}>
+          <Form.Item
+            label="Pick Up Point"
+            name="pickUpPoint"
+            rules={[{ required: true }]}
+          >
+            <Input placeholder="Input Pick Up Point" />
+          </Form.Item>
+          <Form.Item
+            label="Drop Off Point"
+            name="dropOffPoint"
+            rules={[{ required: true }]}
+          >
+            <Input placeholder="Input Drop Off Point" />
+          </Form.Item>
+        </Space>
+        <Space size={"small"}>
+          <Form.Item
+            label="Date (YYYY-MM-DD)"
+            name="date"
+            rules={[{ required: true }]}
+          >
+            <DatePicker disabledDate={disabledDate} placeholder="Trip Date  " />
+          </Form.Item>
+          <Form.Item
+            label="Pick Up Time (HH:MM)"
+            name="time"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <TimePicker
+              format={"HH:mm"}
+              value={value}
+              onChange={onChange}
+              popupStyle={{ display: "none" }}
+              changeOnBlur={true}
+              placeholder="Pick Up Time"
+            />
+          </Form.Item>
+          <Form.Item
+            label="Return Time (HH:MM)"
+            name="returnTime"
+            rules={[{ required: true }]}
+          >
+            <TimePicker
+              format={"HH:mm"}
+              value={value}
+              onChange={onChange}
+              popupStyle={{ display: "none" }}
+              changeOnBlur={true}
+              placeholder="Return Time"
+            />
+          </Form.Item>
+        </Space>
+        <Space size={"large"}>
+          <Form.Item
+            label="Number of Pax"
+            name="numPax"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <InputNumber min={1} step={1} />
+          </Form.Item>
+          <Form.Item
+            label="Number of Buses"
+            name="numBus"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <InputNumber min={1} step={1} />
+          </Form.Item>
+        </Space>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit
