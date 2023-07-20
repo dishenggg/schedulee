@@ -162,12 +162,12 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
       dataIndex: "tripDate",
     },
     {
-      title: "Pick Up",
-      dataIndex: "pickUpPoint",
+      title: "Trip Description",
+      dataIndex: "tripDescription",
     },
     {
-      title: "Drop Off",
-      dataIndex: "dropOffPoint",
+      title: "skip",
+      dataIndex: "skip",
     },
     {
       title: "No. Pax",
@@ -277,6 +277,7 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
         trip["status"] = "Trip type is wrong.";
       }
       currentIndex.forEach((header, index) => {
+        if (header === "skip") return;
         if (header === "bus" || header === "bus2") {
           if (row[index] === "" || !row[index]) {
             trip[header] = [];
@@ -292,8 +293,9 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
         trip[header] = row[index];
       });
       trip.numBusAssigned = trip.bus.length;
+      const numBusAssigned2 = trip.bus2?.length;
 
-      if (trip.numBusAssigned > trip.numBus) {
+      if (trip.numBusAssigned > trip.numBus || numBusAssigned2 > trip.numBus) {
         trip.status = "You have more buses assigned than required.";
       }
       return trip;
@@ -414,6 +416,9 @@ const AddMultipleTrips = ({ drivers, updateListOfTripsByDriver }) => {
 
     const promises = data.map(async ({ status, ...row }) => {
       try {
+        if (status) {
+          throw status;
+        }
         const firebaseData = prepRowForFirebase(row);
         if (row.type === "oneway") {
           await postOneWay(firebaseData);
