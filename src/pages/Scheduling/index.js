@@ -168,8 +168,12 @@ const Scheduling = () => {
                         key: 1,
                         children: (
                             <AllTrips
+                                drivers={listOfDrivers}
+                                subCons={listOfSubCons}
                                 trips={listOfTrips}
                                 selectedDate={formattedDate}
+                                dateWithoutDashes={dateWithoutDashes}
+                                listOfTripsByDriver={listOfTripsByDriver}
                             />
                         ),
                     },

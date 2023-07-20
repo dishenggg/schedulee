@@ -1,13 +1,34 @@
-import { useMemo, useRef, useCallback } from 'react';
+import { useMemo, useRef, useCallback, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import { ParseTimeFromFirestoreToString } from '../../utils/ParseTime';
+import {
+    ParseDateToFirestore,
+    ParseTimeFromFirestoreToString,
+    ParseTimeToFirestore,
+} from '../../utils/ParseTime';
 import { Title } from '../../components/Typography/Title';
-import { Button } from 'antd';
+import { Button, Select, message } from 'antd';
+import { db } from '../../firebase';
+import { collection, updateDoc, doc } from 'firebase/firestore';
+import BusCellRenderer from './BusCellRenderer';
 
-function AllTrips({ trips, selectedDate }) {
+function AllTrips({
+    drivers,
+    subCons,
+    trips,
+    selectedDate,
+    listOfTripsByDriver,
+    dateWithoutDashes,
+}) {
     const gridRef = useRef();
+    const [rowStatus, setRowStatus] = useState({});
+    const listOfDriverIds = useMemo(() => {
+        return [...drivers, ...subCons].map((driver) => ({
+            label: driver.id,
+            value: driver.id,
+        }));
+    }, [drivers, subCons]);
 
     const defaultColDef = useMemo(() => {
         return {
@@ -21,6 +42,19 @@ function AllTrips({ trips, selectedDate }) {
 
     const formatTime = (params) => {
         return ParseTimeFromFirestoreToString(params.value);
+    };
+
+    const busCellRenderer = (params) => {
+        return (
+            <BusCellRenderer
+                params={params}
+                drivers={drivers}
+                subCons={subCons}
+                listOfDriverIds={listOfDriverIds}
+                listOfTripsByDriver={listOfTripsByDriver}
+                dateWithoutDashes={dateWithoutDashes}
+            />
+        );
     };
 
     const columnDefs = [
@@ -69,7 +103,10 @@ function AllTrips({ trips, selectedDate }) {
         {
             headerName: 'Bus',
             field: 'bus',
-            flex: 2,
+            flex: 4,
+            cellRenderer: busCellRenderer,
+            autoHeight: true,
+            wrapText: true,
         },
     ];
 
