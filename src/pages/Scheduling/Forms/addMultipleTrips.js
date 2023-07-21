@@ -341,7 +341,9 @@ const AddMultipleTrips = ({ drivers, subCons, updateListOfTripsByDriver }) => {
             const fileType = file.name.split('.').pop().toLowerCase();
             reader.onload = (e) => {
                 const content = e.target.result;
-                const parsedRows = parseContentToRows(content, fileType);
+                const parsedRows = parseContentToRows(content, fileType).slice(
+                    1
+                ); // Skip 1 for headers;
                 const tripsData = parseRowsToTrips(parsedRows);
                 setData(tripsData);
             };
