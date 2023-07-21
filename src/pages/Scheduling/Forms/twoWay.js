@@ -27,6 +27,7 @@ import {
   ParseTimeToFirestore,
 } from "../../../utils/ParseTime";
 import dayjs from "dayjs";
+import { createDefaultTripTemplate } from "../../../utils/TripUtils";
 
 const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [value, setValue] = useState(null);
@@ -90,45 +91,28 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const handleSubmit = async (values) => {
     try {
       const date = ParseDateToFirestore(values.date);
-      const unassignedBus = [];
-      const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
-      const concatTrips2 = values.dropOffPoint + " --> " + values.pickUpPoint;
-      const TRIPTYPE = "standard";
-      const tripDetails1 = {
-        bus: unassignedBus,
-        customerName: values.customerName,
-        description: values.description,
-        contactName: values.contactPersonName,
-        contactNumber: values.contactPersonPhoneNumber,
-        pickUpPoint: values.pickUpPoint,
-        dropOffPoint: values.dropOffPoint,
-        type: TRIPTYPE,
-        numPax: values.numPax,
-        numBus: values.numBus,
-        numBusAssigned: 0,
-        tripDescription: concatTrips,
-        startTime: ParseTimeToFirestore(values.time, values.date),
-        endTime: ParseTimeToFirestore(values.time, values.date),
-      };
-      const tripDetails2 = {
-        bus: unassignedBus,
-        customerName: values.customerName,
-        description: values.description,
-        contactName: values.contactPersonName,
-        contactNumber: values.contactPersonPhoneNumber,
-        pickUpPoint: values.dropOffPoint,
-        dropOffPoint: values.pickUpPoint,
-        type: TRIPTYPE,
-        numPax: values.numPax,
-        numBus: values.numBus,
-        numBusAssigned: 0,
-        tripDescription: concatTrips2,
-        startTime: ParseTimeToFirestore(values.returnTime, values.date),
-        endTime: ParseTimeToFirestore(values.returnTime, values.date),
-      };
+      const tripDescription1 =
+        values.pickUpPoint + " --> " + values.dropOffPoint;
+      const tripDescription2 =
+        values.dropOffPoint + " --> " + values.pickUpPoint;
+      const tripType = "standard";
+      const tripDetails1 = createDefaultTripTemplate(
+        values,
+        tripDescription1,
+        tripType,
+        values.time,
+        values.time
+      );
+      const tripDetails2 = createDefaultTripTemplate(
+        values,
+        tripDescription2,
+        tripType,
+        values.returnTime,
+        values.returnTime
+      );
       const tripRef = collection(db, "Dates", date, "trips");
-      console.log(tripDetails1);
-      console.log(tripDetails2);
+      // console.log(tripDetails1);
+      // console.log(tripDetails2);
       Promise.all([
         addDoc(tripRef, tripDetails1),
         addDoc(tripRef, tripDetails2),
