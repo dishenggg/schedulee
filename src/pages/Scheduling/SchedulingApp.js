@@ -144,7 +144,7 @@ export default function SchedulingApp({
       }
 
       // Do nothing if it clashes
-      if (checkTimeClash(data, newId)) {
+      if (newId !== unscheduledTrips && checkTimeClash(data, newId)) {
         message.error(
           `${newId} cannot be scheduled this trip as it is within 15 minutes of another trip.`
         );
