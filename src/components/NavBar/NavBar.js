@@ -39,11 +39,6 @@ const Navbar = () => {
       icon: <CalendarOutlined />,
     },
     {
-      label: <Link to="/bus-details">Bus Details</Link>,
-      key: "bus",
-      icon: <CarOutlined />,
-    },
-    {
       label: <Link to="/customer-details">Customer Details</Link>,
       key: "customer",
       icon: <UserOutlined />,
