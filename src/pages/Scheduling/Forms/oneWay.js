@@ -228,11 +228,12 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Space>
         <Space size={"large"}>
           <Form.Item
-            label="Date (YYYY-MM-DD)"
+            label="Date (DD/MM/YYYY)"
             name="date"
             rules={[{ required: true }]}
           >
             <DatePicker
+              format={"DD/MM/YYYY"}
               placeholder="Trip Date"
               disabledDate={disabledDate}
               style={{
