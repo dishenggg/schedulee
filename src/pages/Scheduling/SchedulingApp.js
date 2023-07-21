@@ -72,6 +72,7 @@ export default function SchedulingApp({
     }, [listOfTripsByDriver]);
 
     const checkTimeClash = (data, driverId) => {
+        if (driverId === unscheduledTrips) return false;
         // Check for timing clashes with existing trips
         const newTripStartTime = parseDateTimeFromStringToFireStore(
             data.startTime,
@@ -98,10 +99,9 @@ export default function SchedulingApp({
                 (diffNewEndOldStart >= -15 && diffNewEndOldStart <= 15)
             ) {
                 return true; // Hide grid if there is a timing clash
-            } else {
-                return false;
             }
         }
+        return false;
     };
 
     const onRowDragEnter = (params) => {
