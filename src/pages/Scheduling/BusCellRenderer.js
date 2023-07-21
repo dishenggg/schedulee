@@ -64,15 +64,18 @@ const BusCellRenderer = ({
       dateWithoutDashes
     );
     for (const trip of listOfTripsByDriver[driverId] || []) {
-      const tripStartTime = ParseTimeFromFirestore(trip.startTime);
-      const tripEndTime = ParseTimeFromFirestore(trip.endTime);
+      const tripStartTime = ParseTimeFromFirestore(trip.startTime).add(
+        -15,
+        "minute"
+      );
+      const tripEndTime = ParseTimeFromFirestore(trip.endTime).add(
+        15,
+        "minute"
+      );
       const diffNewStartOldEnd = newTripStartTime.diff(tripEndTime, "minute");
       const diffNewEndOldStart = newTripEndTime.diff(tripStartTime, "minute");
-      if (
-        (diffNewStartOldEnd >= -15 && diffNewStartOldEnd <= 15) ||
-        (diffNewEndOldStart >= -15 && diffNewEndOldStart <= 15)
-      ) {
-        return true; // Hide grid if there is a timing clash
+      if (diffNewEndOldStart >= 0 && diffNewStartOldEnd <= 0) {
+        return true;
       }
     }
     return false;
