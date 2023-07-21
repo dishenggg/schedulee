@@ -8,7 +8,7 @@ import {
   ParseTimeToFirestore,
 } from "../../utils/ParseTime";
 import { Title } from "../../components/Typography/Title";
-import { Button, Checkbox, Select, message } from "antd";
+import { Button, Checkbox, Col, Row, Select, Space, message } from "antd";
 import { db } from "../../firebase";
 import { collection, updateDoc, doc } from "firebase/firestore";
 import BusCellRenderer from "./BusCellRenderer";
@@ -102,30 +102,38 @@ function AllTrips({
   };
   const columnDefs = [
     {
+      headerName: "ID",
+      valueGetter: (params) => {
+        return parseInt(params.node.id) + 1;
+      },
+      flex: 1,
+      minWidth: 55,
+    },
+    {
       headerName: "Trip Type",
       field: "type",
-      flex: 3,
+      flex: 6,
     },
     {
       headerName: "Start Time",
       field: "startTime",
-      flex: 6,
+      flex: 12,
       valueFormatter: formatTime,
       maxWidth: 100,
     },
     {
       headerName: "Contact Name",
       field: "contactName",
-      flex: 6,
+      flex: 12,
     },
     {
       headerName: "Contact Number",
       field: "contactNumber",
-      flex: 6,
+      flex: 12,
     },
     {
       headerName: "Pick Up",
-      flex: 12,
+      flex: 24,
       valueGetter: pickUpValueGetter,
       colSpan: disposalOrTourColSpan,
       cellStyle: pickUpCellStyle,
@@ -133,23 +141,23 @@ function AllTrips({
     {
       headerName: "Drop Off",
       field: "dropOffPoint",
-      flex: 12,
+      flex: 24,
     },
     {
       headerName: "No. Pax",
       field: "numPax",
-      flex: 3,
+      flex: 6,
     },
     {
       headerName: "No. Bus",
       field: "numBus",
-      flex: 3,
+      flex: 6,
     },
 
     {
       headerName: "Bus",
       field: "bus",
-      flex: 16,
+      flex: 32,
       cellRenderer: busCellRenderer,
       autoHeight: true,
       wrapText: true,
@@ -198,15 +206,23 @@ function AllTrips({
 
   return (
     <>
-      <Title level={2}> {selectedDate}</Title>
-      <Button onClick={exportToExcel}>Download</Button>
-      <Checkbox
-        onChange={(e) => {
-          externalFilterChanged(e.target.checked);
-        }}
-      >
-        Show Only Unassigned
-      </Checkbox>
+      <Row align="bottom">
+        <Col span={6}>
+          <Title level={2}> {selectedDate}</Title>
+        </Col>
+        <Col span={4} offset={14} style={{ marginBottom: "10px" }}>
+          <Checkbox
+            onChange={(e) => {
+              externalFilterChanged(e.target.checked);
+            }}
+          >
+            Show Only Unassigned
+          </Checkbox>
+          <Button onClick={exportToExcel}>Download</Button>
+        </Col>
+        {/* <Col span={2} style={{ marginBottom: '5px' }}></Col> */}
+      </Row>
+
       <div
         className={
           localStorage.getItem("darkMode") === "true"
