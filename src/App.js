@@ -7,7 +7,6 @@ import HideNavBarInLogin from "./components/NavBar/HideNavBarInLogin";
 import PrivateRoutes from "./utils/PrivateRoutes";
 import Salary from ".//pages/Salary/";
 import Scheduling from ".//pages/Scheduling/";
-import BusDetails from ".//pages/BusDetails/";
 import CustomerDetails from ".//pages/CustomerDetails/";
 import CustomerDetailsPage from "./pages/CustomerDetails/customerDetailsPage";
 import DriverDetails from ".//pages/DriverDetails/";
@@ -44,7 +43,6 @@ function App() {
                 <Route exact path="/" element={<Scheduling />} />
                 <Route path="/salary" element={<Salary />} />
                 <Route path="/scheduling" element={<Scheduling />} />
-                <Route path="/bus-details" element={<BusDetails />} />
                 <Route path="/customer-details" element={<CustomerDetails />} />
                 <Route
                   path="/customer-details/:customerName"

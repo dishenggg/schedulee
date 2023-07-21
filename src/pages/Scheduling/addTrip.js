@@ -24,6 +24,7 @@ const AddTrip = ({ updateListOfTripsByDriver }) => {
       </Button>
       <Modal
         open={openModal}
+        destroyOnClose={true}
         title="Add Trip"
         footer={null}
         onCancel={() => {
@@ -36,9 +37,9 @@ const AddTrip = ({ updateListOfTripsByDriver }) => {
             style={{ width: 150 }}
             onChange={(e) => handleFormChange(e)}
             options={[
-              { value: "1", label: "Standard 1-Way" },
-              { value: "2", label: "Standard 2-Way" },
-              { value: "3", label: "Disposal" },
+              { value: "1", label: "1-Way" },
+              { value: "2", label: "2-Way" },
+              { value: "3", label: "Disposal/Tour" },
             ]}
           />
           <TripForm
