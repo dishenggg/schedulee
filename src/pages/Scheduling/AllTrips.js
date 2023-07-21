@@ -77,6 +77,29 @@ function AllTrips({
     }
   };
 
+  const disposalOrTourColSpan = (params) => {
+    const type = params.data.type;
+    if (type === "disposal" || type === "tour") {
+      return 2;
+    } else {
+      return 1;
+    }
+  };
+
+  const pickUpValueGetter = (params) => {
+    const type = params.data.type;
+    if (type === "disposal" || type === "tour") {
+      return params.data.tripDescription;
+    } else {
+      return params.data.pickUpPoint;
+    }
+  };
+  const pickUpCellStyle = (params) => {
+    const type = params.data.type;
+    if (type === "disposal" || type === "tour") {
+      return { textAlign: "center" };
+    }
+  };
   const columnDefs = [
     {
       headerName: "Trip Type",
@@ -102,8 +125,10 @@ function AllTrips({
     },
     {
       headerName: "Pick Up",
-      field: "pickUpPoint",
       flex: 12,
+      valueGetter: pickUpValueGetter,
+      colSpan: disposalOrTourColSpan,
+      cellStyle: pickUpCellStyle,
     },
     {
       headerName: "Drop Off",
@@ -142,7 +167,11 @@ function AllTrips({
   ];
 
   const exportToExcel = useCallback(() => {
-    gridRef.current.api.exportDataAsCsv();
+    const cols = gridRef.current.columnApi.getColumns();
+    cols.pop();
+    gridRef.current.api.exportDataAsCsv({
+      columnKeys: cols,
+    });
   }, []);
 
   var filtered = false;
