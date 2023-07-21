@@ -283,19 +283,19 @@ const AddMultipleTrips = ({ drivers, subCons, updateListOfTripsByDriver }) => {
         const res = parsedRows.map((row, i) => {
             const trip = {};
             var currentIndex;
-            //trip["key"] = i;
+            row[0] = row[0].toLowerCase();
             if (row[0] === 'oneway') {
                 currentIndex = oneWayIndex;
             } else if (row[0] === 'twoway') {
                 currentIndex = twoWayIndex;
-            } else if (row[0] === 'disposal') {
+            } else if (row[0] === 'disposal' || row[0] === 'tour') {
                 currentIndex = disposalIndex;
             } else {
                 currentIndex = displayIndex;
                 trip.status = 'Trip type is wrong.';
             }
             currentIndex.forEach((header, index) => {
-                if (header === 'skip') return;
+                if (header === 'skip' || header === 'status') return;
 
                 if (header === 'bus' || header === 'bus2') {
                     if (row[index] === '' || !row[index]) {
@@ -402,11 +402,11 @@ const AddMultipleTrips = ({ drivers, subCons, updateListOfTripsByDriver }) => {
             await batch.commit();
         };
 
-        const postDisposal = async ({ key, type, tripDate, ...row }) => {
+        const postDisposalOrTour = async ({ key, type, tripDate, ...row }) => {
             const tripRef = collection(db, 'Dates', tripDate, 'trips');
             const updatedValues = {
                 ...row,
-                type: 'disposal',
+                type: type,
             };
             await addDoc(tripRef, updatedValues);
         };
@@ -459,8 +459,8 @@ const AddMultipleTrips = ({ drivers, subCons, updateListOfTripsByDriver }) => {
                     await postOneWay(firebaseData);
                 } else if (row.type === 'twoway') {
                     await postTwoWay(firebaseData);
-                } else if (row.type === 'disposal') {
-                    await postDisposal(firebaseData);
+                } else if (row.type === 'disposal' || row.type === 'tour') {
+                    await postDisposalOrTour(firebaseData);
                 } else {
                     updatedData.push({ ...row, status: 'Invalid Trip Type' });
                 }
