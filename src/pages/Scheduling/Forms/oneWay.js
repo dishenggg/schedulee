@@ -27,6 +27,7 @@ import {
   ParseTimeToFirestore,
 } from "../../../utils/ParseTime";
 import dayjs from "dayjs";
+import { createDefaultTripTemplate } from "../../../utils/TripUtils";
 
 const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [value, setValue] = useState(null);
@@ -74,7 +75,6 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   };
 
   useEffect(() => {
-    console.log("hi me");
     fetchCustomers();
   }, []);
 
@@ -89,26 +89,17 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const handleSubmit = async (values) => {
     try {
       const date = ParseDateToFirestore(values.date);
-      const unassignedBus = [];
-      const concatTrips = values.pickUpPoint + " --> " + values.dropOffPoint;
-      const TRIPTYPE = "standard";
-      const tripDetails = {
-        bus: unassignedBus,
-        customerName: values.customerName,
-        description: values.description,
-        contactName: values.contactPersonName,
-        contactNumber: values.contactPersonPhoneNumber,
-        pickUpPoint: values.pickUpPoint,
-        dropOffPoint: values.dropOffPoint,
-        type: TRIPTYPE,
-        numPax: values.numPax,
-        numBus: values.numBus,
-        numBusAssigned: 0,
-        tripDescription: concatTrips,
-        startTime: ParseTimeToFirestore(values.time, values.date),
-        endTime: ParseTimeToFirestore(values.time, values.date),
-      };
-      console.log(tripDetails);
+      const tripDescription =
+        values.pickUpPoint + " --> " + values.dropOffPoint;
+      const tripType = "standard";
+      const tripDetails = createDefaultTripTemplate(
+        values,
+        tripDescription,
+        tripType,
+        values.time,
+        values.time
+      );
+      // console.log(tripDetails);
       const tripRef = collection(db, "Dates", date, "trips");
       await addDoc(tripRef, tripDetails);
       updateListOfTripsByDriver();

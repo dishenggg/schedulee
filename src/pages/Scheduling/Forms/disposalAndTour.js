@@ -28,6 +28,7 @@ import {
   ParseTimeToFirestore,
 } from "../../../utils/ParseTime";
 import dayjs from "dayjs";
+import { createDefaultTripTemplate } from "../../../utils/TripUtils";
 
 const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const [value, setValue] = useState(null);
@@ -88,24 +89,18 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
   const handleSubmit = async (values) => {
     try {
       const date = ParseDateToFirestore(values.date);
-      const unassignedBus = [];
+      const updatedValues = { ...values, pickUpPoint: "", dropOffPoint: "" };
+      // console.log("updated values")
+      // console.log(updatedValues);
 
-      const tripDetails = {
-        bus: unassignedBus,
-        customerName: values.customerName,
-        contactName: values.contactPersonName,
-        contactNumber: values.contactPersonPhoneNumber,
-        pickUpPoint: "",
-        dropOffPoint: "",
-        type: values.tripType,
-        numPax: values.numPax,
-        numBus: values.numBus,
-        numBusAssigned: 0,
-        tripDescription: values.tripDescription,
-        startTime: ParseTimeToFirestore(values.startTime, values.date),
-        endTime: ParseTimeToFirestore(values.endTime, values.date),
-      };
-      // console.log(tripDetails);
+      const tripDetails = createDefaultTripTemplate(
+        updatedValues,
+        updatedValues.tripDescription,
+        updatedValues.tripType,
+        updatedValues.startTime,
+        updatedValues.endTime
+      );
+      console.log(tripDetails);
       const tripRef = collection(db, "Dates", date, "trips");
       await addDoc(tripRef, tripDetails);
       updateListOfTripsByDriver();
