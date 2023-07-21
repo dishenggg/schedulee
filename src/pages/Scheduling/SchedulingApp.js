@@ -16,7 +16,7 @@ import {
     ParseTimeFromFirestore,
 } from '../../utils/ParseTime';
 import { Button, message } from 'antd';
-import { CopyOutlined } from '@ant-design/icons';
+import { CopyOutlined, RollbackOutlined } from '@ant-design/icons';
 
 export default function SchedulingApp({
     selectedDate,
@@ -204,8 +204,13 @@ export default function SchedulingApp({
         } finally {
             setDragStarted(false);
             setDragStartId(null);
+            console.log(driverDetails);
             setDisplayedGridIds(Object.keys(driverDetails));
         }
+    };
+
+    const onDragStopped = () => {
+        setDisplayedGridIds(Object.keys(driverDetails));
     };
 
     const defaultColDef = useMemo(() => {
@@ -213,6 +218,35 @@ export default function SchedulingApp({
             suppressMovable: true,
         };
     }, []);
+
+    const unassignCellRenderer = (params) => {
+        const handleClick = async (e) => {
+            e.preventDefault();
+            const data = params.node.data;
+            const docRef = doc(db, 'Dates', selectedDate, 'trips', data.id);
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const docSnapshot = await transaction.get(docRef);
+                    transaction.update(docSnapshot.ref, {
+                        bus: arrayRemove(params.driverId),
+                        numBusAssigned: docSnapshot.data().numBusAssigned - 1,
+                    });
+                });
+                message.success(`Removed trip from ${params.driverId}`);
+            } catch (error) {
+                message.error(error);
+            } finally {
+                updateListOfTripsByDriver();
+            }
+        };
+        return (
+            <Button
+                onClick={handleClick}
+                icon={<RollbackOutlined />}
+                size="small"
+            />
+        );
+    };
 
     const columnDefs = useCallback(
         (driverId) => {
@@ -238,8 +272,19 @@ export default function SchedulingApp({
                     wrapText: true,
                 },
             ];
+
             if (driverId !== unscheduledTrips) {
-                return cols;
+                return [
+                    ...cols,
+                    {
+                        headerName: '',
+                        flex: 7,
+                        cellRenderer: unassignCellRenderer,
+                        cellRendererParams: {
+                            driverId: driverId,
+                        },
+                    },
+                ];
             } else {
                 return [
                     ...cols,
@@ -326,9 +371,8 @@ export default function SchedulingApp({
                         <Button
                             onClick={(e) => copyToText(e, driverTripData)}
                             shape={'circle'}
-                        >
-                            <CopyOutlined />
-                        </Button>
+                            icon={<CopyOutlined />}
+                        />
                     )}
                 </Title>
 
@@ -350,6 +394,7 @@ export default function SchedulingApp({
                         getRowId={getRowId}
                         onRowDragEnter={onRowDragEnter}
                         onRowDragEnd={onRowDragEnd}
+                        onDragStopped={onDragStopped}
                     />
                 </div>
             </>
