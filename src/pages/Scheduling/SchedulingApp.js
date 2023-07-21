@@ -208,7 +208,7 @@ export default function SchedulingApp({
       {
         headerName: "Time",
         valueGetter: (params) => {
-          return params.data.type === "disposal"
+          return params.data.type === "disposal" || params.data.type === "tour"
             ? `${params.data.startTime} - ${params.data.endTime}`
             : `${params.data.startTime}`;
         },
@@ -255,9 +255,9 @@ export default function SchedulingApp({
     )}`;
     const res = [textDate, "\n"];
     driverTripData.forEach((data) => {
-      if (data.type === "disposal") {
+      if (data.type === "disposal" || data.type === "tour") {
         res.push(`Time: ${data.startTime} to ${data.endTime}\n`);
-        res.push(`Disposal: ${data.tripDescription}`);
+        res.push(`${data.type}: ${data.tripDescription}`);
       } else {
         res.push(`Time: ${data.startTime}\n`);
         res.push(`From: ${data.pickUpPoint}\n`);
