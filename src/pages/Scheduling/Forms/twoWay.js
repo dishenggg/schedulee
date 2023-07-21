@@ -250,11 +250,15 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Space>
         <Space size={"small"}>
           <Form.Item
-            label="Date (YYYY-MM-DD)"
+            label="Date (DD/MM/YYYY)"
             name="date"
             rules={[{ required: true }]}
           >
-            <DatePicker disabledDate={disabledDate} placeholder="Trip Date  " />
+            <DatePicker
+              disabledDate={disabledDate}
+              placeholder="Trip Date"
+              format={"DD/MM/YYYY"}
+            />
           </Form.Item>
           <Form.Item
             label="Pick Up Time (HH:MM)"
