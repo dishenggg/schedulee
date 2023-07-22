@@ -25,28 +25,17 @@ export default function SchedulingApp({
     drivers,
     subCons,
     updateListOfTripsByDriver,
+    driverDetails,
 }) {
     const unscheduledTrips = 'Unscheduled Trips';
 
-    const [driverDetails, setDriverDetails] = useState({});
     const gridRefs = useRef({});
     const [gridMapToDriverId, setGridMapToDriverId] = useState({});
     const [dragStartId, setDragStartId] = useState(null);
     const [dragStarted, setDragStarted] = useState(false);
     const [displayedGridIds, setDisplayedGridIds] = useState([]);
 
-    const populateDriverDetails = () => {
-        const res = {};
-        drivers.forEach((row) => {
-            res[row.busNumber] = { ...row };
-        });
-        subCons.forEach((row) => {
-            res[row.busNumber] = { ...row };
-        });
-        setDriverDetails(res);
-    };
-
-    const getRowId = (params) => params.data.id;
+    const getRowId = useCallback((params) => params.data.id, []);
 
     const onGridReady = (params, gridKey) => {
         for (const grid in gridRefs.current) {
@@ -64,12 +53,8 @@ export default function SchedulingApp({
     };
 
     useEffect(() => {
-        populateDriverDetails();
-    }, [drivers, subCons]);
-
-    useEffect(() => {
-        setDisplayedGridIds(Object.keys(driverDetails));
-    }, [driverDetails]);
+        setDisplayedGridIds(Object.keys(listOfTripsByDriver));
+    }, [listOfTripsByDriver]);
 
     const checkTimeClash = useCallback(
         (data, driverId) => {
@@ -105,7 +90,7 @@ export default function SchedulingApp({
             }
             return false;
         },
-        [listOfTripsByDriver]
+        [listOfTripsByDriver, selectedDate]
     );
 
     const onRowDragEnter = (params) => {
@@ -114,11 +99,11 @@ export default function SchedulingApp({
             setDragStarted(true);
             setDragStartId(gridId);
 
-            // Conditionally hide grids with busSize < paxSize or timing clashes
-            const gridsToHide = Object.keys(listOfTripsByDriver).filter(
+            // Conditionally show grids with busSize < paxSize or timing clashes
+            const gridsToShow = Object.keys(driverDetails).filter(
                 (driverId) => {
                     if (driverId === unscheduledTrips) {
-                        return false; // Always display unscheduled trips grid
+                        return true; // Always display unscheduled trips grid
                     }
 
                     const driverObj = driverDetails[driverId];
@@ -127,18 +112,12 @@ export default function SchedulingApp({
                     const paxSize = draggedRowData.numPax;
 
                     if (busSize < paxSize) {
-                        return true; // Hide grid if bus size is smaller than required
+                        return false; // Hide grid if bus size is smaller than required
                     }
-
-                    return checkTimeClash(draggedRowData, driverId); // Display grid if there are no clashes or bus size issues
+                    return !checkTimeClash(draggedRowData, driverId); // Display grid if there are no clashes or bus size issues
                 }
             );
-
-            const allGrids = Object.keys(listOfTripsByDriver);
-            const displayedGridIds = allGrids.filter(
-                (gridId) => !gridsToHide.includes(gridId)
-            );
-            setDisplayedGridIds(displayedGridIds);
+            setDisplayedGridIds(gridsToShow);
         }
     };
 
@@ -170,6 +149,7 @@ export default function SchedulingApp({
                 );
                 return;
             }
+
             const docRef = doc(db, 'Dates', selectedDate, 'trips', data.id);
             if (newId === unscheduledTrips) {
                 await runTransaction(db, async (transaction) => {
@@ -204,13 +184,12 @@ export default function SchedulingApp({
         } finally {
             setDragStarted(false);
             setDragStartId(null);
-            console.log(driverDetails);
-            setDisplayedGridIds(Object.keys(driverDetails));
+            setDisplayedGridIds(Object.keys(listOfTripsByDriver));
         }
     };
 
     const onDragStopped = () => {
-        setDisplayedGridIds(Object.keys(driverDetails));
+        setDisplayedGridIds(Object.keys(listOfTripsByDriver));
     };
 
     const defaultColDef = useMemo(() => {
@@ -219,34 +198,38 @@ export default function SchedulingApp({
         };
     }, []);
 
-    const unassignCellRenderer = (params) => {
-        const handleClick = async (e) => {
-            e.preventDefault();
-            const data = params.node.data;
-            const docRef = doc(db, 'Dates', selectedDate, 'trips', data.id);
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const docSnapshot = await transaction.get(docRef);
-                    transaction.update(docSnapshot.ref, {
-                        bus: arrayRemove(params.driverId),
-                        numBusAssigned: docSnapshot.data().numBusAssigned - 1,
+    const unassignCellRenderer = useCallback(
+        (params) => {
+            const handleClick = async (e) => {
+                e.preventDefault();
+                const data = params.node.data;
+                const docRef = doc(db, 'Dates', selectedDate, 'trips', data.id);
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const docSnapshot = await transaction.get(docRef);
+                        transaction.update(docSnapshot.ref, {
+                            bus: arrayRemove(params.driverId),
+                            numBusAssigned:
+                                docSnapshot.data().numBusAssigned - 1,
+                        });
                     });
-                });
-                message.success(`Removed trip from ${params.driverId}`);
-            } catch (error) {
-                message.error(error);
-            } finally {
-                updateListOfTripsByDriver();
-            }
-        };
-        return (
-            <Button
-                onClick={handleClick}
-                icon={<RollbackOutlined />}
-                size="small"
-            />
-        );
-    };
+                    message.success(`Removed trip from ${params.driverId}`);
+                    updateListOfTripsByDriver();
+                } catch (error) {
+                    message.error(error);
+                }
+            };
+
+            return (
+                <Button
+                    onClick={handleClick}
+                    icon={<RollbackOutlined />}
+                    size="small"
+                />
+            );
+        },
+        [selectedDate, updateListOfTripsByDriver]
+    );
 
     const columnDefs = useCallback(
         (driverId) => {
@@ -304,7 +287,7 @@ export default function SchedulingApp({
                 ];
             }
         },
-        [editable]
+        [editable, unassignCellRenderer]
     );
 
     const copyToText = useCallback(

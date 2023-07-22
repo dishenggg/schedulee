@@ -16,6 +16,7 @@ function AllTrips({
     listOfTripsByDriver,
     dateWithoutDashes,
     updateListOfTripsByDriver,
+    driverDetails,
 }) {
     const gridRef = useRef();
     const listOfDriverIds = useMemo(() => {
@@ -44,18 +45,16 @@ function AllTrips({
             return (
                 <BusCellRenderer
                     params={params}
-                    drivers={drivers}
-                    subCons={subCons}
                     listOfDriverIds={listOfDriverIds}
                     listOfTripsByDriver={listOfTripsByDriver}
                     dateWithoutDashes={dateWithoutDashes}
                     updateListOfTripsByDriver={updateListOfTripsByDriver}
+                    driverDetails={driverDetails}
                 />
             );
         },
         [
-            drivers,
-            subCons,
+            driverDetails,
             listOfDriverIds,
             listOfTripsByDriver,
             dateWithoutDashes,
@@ -171,10 +170,6 @@ function AllTrips({
                 cellRenderer: numUnassignedRenderer,
                 valueGetter: (params) =>
                     params.data.numBus - params.data.numBusAssigned,
-                filter: 'agNumberColumnFilter',
-                filterParams: {
-                    // pass in additional parameters to the Number Filter
-                },
             },
         ];
     }, [busCellRenderer]);
@@ -195,7 +190,6 @@ function AllTrips({
     }, []);
 
     const isExternalFilterPresent = useCallback(() => {
-        // if ageType is not everyone, then we are filtering
         return filtered;
     }, [filtered]);
 
@@ -208,6 +202,8 @@ function AllTrips({
         },
         [filtered]
     );
+
+    const getRowId = useCallback((params) => params.data.id);
 
     return (
         <>
@@ -244,7 +240,7 @@ function AllTrips({
                     stopEditingWhenCellsLoseFocus={true}
                     isExternalFilterPresent={isExternalFilterPresent}
                     doesExternalFilterPass={doesExternalFilterPass}
-                    getRowId={(params) => params.data.id}
+                    getRowId={getRowId}
                 />
             </div>
         </>

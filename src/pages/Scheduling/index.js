@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {
+    useState,
+    useEffect,
+    useMemo,
+    useCallback,
+    lazy,
+    Suspense,
+} from 'react';
 import { Space, DatePicker, Tabs } from 'antd';
 import SchedulingApp from './SchedulingApp';
 import AddMultipleTrips from './Forms/addMultipleTrips';
@@ -11,6 +18,8 @@ import { ParseDateToFirestore } from '../../utils/ParseTime';
 import dayjs from 'dayjs';
 import AllTrips from './AllTrips';
 
+//const SchedulingApp = lazy(() => import('./SchedulingApp'));
+
 const Scheduling = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [editable, setEditable] = useState(true);
@@ -18,6 +27,7 @@ const Scheduling = () => {
     const [listOfDrivers, setListOfDrivers] = useState([]);
     const [listOfTrips, setListOfTrips] = useState([]);
     const [listOfSubCons, setListOfSubCons] = useState([]);
+    const [driverDetails, setDriverDetails] = useState({});
 
     const handleDateChange = (date, dateString) => {
         setSelectedDate(date.toDate());
@@ -44,12 +54,12 @@ const Scheduling = () => {
         [formattedDate]
     );
 
-    const populateListOfTripsByDriver = async () => {
+    const populateListOfTripsByDriver = (trips) => {
         const res = {
             'Unscheduled Trips': [],
         };
 
-        listOfTrips.forEach((trip) => {
+        trips.forEach((trip) => {
             if (trip.numBusAssigned < trip.numBus) {
                 res['Unscheduled Trips'].push(trip);
             }
@@ -86,15 +96,10 @@ const Scheduling = () => {
         setListOfSubCons(subCons);
     };
 
-    const populateListOfTrips = async () => {
+    const populateListOfTrips = async (date) => {
         const tripsQuery = await getDocs(
             query(
-                collection(
-                    db,
-                    'Dates',
-                    ParseDateToFirestore(selectedDate),
-                    'trips'
-                ),
+                collection(db, 'Dates', ParseDateToFirestore(date), 'trips'),
                 orderBy('startTime')
             )
         );
@@ -106,21 +111,41 @@ const Scheduling = () => {
         setListOfTrips(trips);
     };
 
-    const updateListOfTripsByDriver = () => {
-        populateListOfTrips();
+    const populateDriverDetails = (drivers, subCons) => {
+        const res = {};
+        drivers.forEach((row) => {
+            res[row.busNumber] = { ...row };
+        });
+        subCons.forEach((row) => {
+            res[row.busNumber] = { ...row };
+        });
+        setDriverDetails(res);
+    };
+
+    const updateListOfTripsByDriver = useCallback(() => {
+        populateListOfTrips(selectedDate);
         //populateListOfDrivers();
         //populateListOfSubCons();
-    };
+    }, [selectedDate]);
+
+    useEffect(() => {
+        //populateListOfDrivers();
+        //populateListOfSubCons();
+        populateListOfTrips(selectedDate);
+    }, [selectedDate]);
+
+    useEffect(() => {
+        populateListOfTripsByDriver(listOfTrips);
+    }, [listOfTrips]);
+
+    useEffect(() => {
+        populateDriverDetails(listOfDrivers, listOfSubCons);
+    }, [listOfDrivers, listOfSubCons]);
 
     useEffect(() => {
         populateListOfDrivers();
         populateListOfSubCons();
-        populateListOfTrips();
-    }, [selectedDate]);
-
-    useEffect(() => {
-        populateListOfTripsByDriver();
-    }, [selectedDate, listOfTrips]);
+    }, []);
 
     return (
         <>
@@ -170,6 +195,7 @@ const Scheduling = () => {
                                 updateListOfTripsByDriver={
                                     updateListOfTripsByDriver
                                 }
+                                driverDetails={driverDetails}
                             />
                         ),
                     },
@@ -186,6 +212,7 @@ const Scheduling = () => {
                                 updateListOfTripsByDriver={
                                     updateListOfTripsByDriver
                                 }
+                                driverDetails={driverDetails}
                             />
                         ),
                     },

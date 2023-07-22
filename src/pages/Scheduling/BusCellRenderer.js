@@ -1,5 +1,5 @@
 import { Select, message } from 'antd';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, memo, useMemo } from 'react';
 import {
     ParseDateToFirestore,
     ParseTimeFromFirestoreToString,
@@ -18,40 +18,20 @@ import {
 const BusCellRenderer = ({
     params,
     listOfDriverIds,
-    drivers,
-    subCons,
     listOfTripsByDriver,
     dateWithoutDashes,
     updateListOfTripsByDriver,
+    driverDetails,
 }) => {
-    const [driverDetails, setDriverDetails] = useState({});
     const [dropDownOpen, setDropDownOpen] = useState(false);
-    const unscheduledTrips = 'Unscheduled Trips';
-    const [status, setStatus] = useState(
-        params.data.bus.length > params.data.numBus ? 'warning' : ''
-    );
+    const unscheduledTrips = useMemo(() => 'Unscheduled Trips', []);
     const [options, setOptions] = useState([]);
     const [selected, setSelected] = useState([]);
     const [changed, setChanged] = useState(false);
-
-    useEffect(() => {
-        getOptions(params);
-    }, [listOfTripsByDriver, driverDetails]);
-
-    useEffect(() => {
-        populateDriverDetails();
-    }, [drivers, subCons]);
-
-    const populateDriverDetails = () => {
-        const res = {};
-        drivers.forEach((row) => {
-            res[row.busNumber] = { ...row };
-        });
-        subCons.forEach((row) => {
-            res[row.busNumber] = { ...row };
-        });
-        setDriverDetails(res);
-    };
+    const status = useMemo(
+        () => (params.data.bus.length > params.data.numBus ? 'warning' : ''),
+        [params]
+    );
 
     const checkTimeClash = useCallback(
         (data, driverId) => {
@@ -87,11 +67,11 @@ const BusCellRenderer = ({
             }
             return false;
         },
-        [dateWithoutDashes, listOfTripsByDriver]
+        [dateWithoutDashes, listOfTripsByDriver, unscheduledTrips]
     );
 
     const getOptions = useCallback(
-        (params) => {
+        (params, listOfDriverIds, driverDetails) => {
             const res = Object.values(listOfDriverIds).filter((driver) => {
                 const driverId = driver.value;
                 if (driverId === unscheduledTrips) {
@@ -109,25 +89,26 @@ const BusCellRenderer = ({
                 return !checkTimeClash(rowData, driverId); // Display grid if there are no clashes or bus size issues
             });
             setOptions(res);
-            // setOptions(
-            //     options.map((driverId) => ({
-            //         label: driverId,
-            //         value: driverId,
-            //     }))
-            // );
         },
-        [listOfDriverIds, driverDetails, checkTimeClash]
+        [checkTimeClash, unscheduledTrips]
     );
 
-    const handleChange = async (value) => {
+    useEffect(() => {
+        getOptions(params, listOfDriverIds, driverDetails);
+    }, [listOfDriverIds, driverDetails, params, getOptions]);
+
+    const handleChange = (value) => {
         setChanged(true);
         setSelected(value);
     };
 
-    const onBlur = async (params, e) => {
+    const onBlur = async (e) => {
         if (!changed) return;
-        const data = params.node.data;
+
         try {
+            const data = params.node.data;
+            if (selected.length > data.numBus)
+                throw new Error('You cannot assign more buses than required');
             const id = data.id;
             const tripRef = doc(db, 'Dates', dateWithoutDashes, 'trips', id);
             await updateDoc(tripRef, {
@@ -144,10 +125,11 @@ const BusCellRenderer = ({
         }
     };
 
-    const onDeselect = async (params, value) => {
+    const onDeselect = async (value) => {
         if (dropDownOpen) return;
-        const data = params.node.data;
+
         try {
+            const data = params.node.data;
             const id = data.id;
             const tripRef = doc(db, 'Dates', dateWithoutDashes, 'trips', id);
             await runTransaction(db, async (transaction) => {
@@ -158,10 +140,9 @@ const BusCellRenderer = ({
                 });
             });
             message.success('Successfully Updated Buses');
+            updateListOfTripsByDriver();
         } catch (error) {
             message.error(error.toString());
-        } finally {
-            updateListOfTripsByDriver();
         }
     };
 
@@ -175,9 +156,9 @@ const BusCellRenderer = ({
             style={{ width: '100%', height: '100%' }}
             placeholder="No Bus Assigned"
             defaultValue={params.data.bus}
-            onChange={(value) => handleChange(value)}
-            onBlur={(e) => onBlur(params, e)}
-            onDeselect={(value) => onDeselect(params, value)}
+            onChange={handleChange}
+            onBlur={onBlur}
+            onDeselect={onDeselect}
             options={options}
             status={status}
             onDropdownVisibleChange={onDropdownVisibleChange}
@@ -185,4 +166,4 @@ const BusCellRenderer = ({
     );
 };
 
-export default BusCellRenderer;
+export default memo(BusCellRenderer);
