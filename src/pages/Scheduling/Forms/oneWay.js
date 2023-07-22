@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import {
   Form,
@@ -100,7 +100,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         values.time
       );
       // console.log(tripDetails);
-      const tripRef = collection(db, "Dates", date, "trips");
+      const tripRef = collection(db, "Trips");
       await addDoc(tripRef, tripDetails);
       updateListOfTripsByDriver();
       message.success("Trip added successfully!");
@@ -126,7 +126,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         }}
       >
         <Form.Item
-          label="Customer Name"
+          label="Customer Name:"
           name="customerName"
           rules={[{ required: true }]}
         >
@@ -173,7 +173,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
           />
         </Form.Item>
         <Form.Item
-          label="Description"
+          label="Description:"
           name="description"
           rules={[{ required: true }]}
         >
@@ -181,14 +181,14 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Form.Item>
         <Space size={"large"}>
           <Form.Item
-            label="Contact Person Name"
+            label="Contact Person Name:"
             name="contactPersonName"
             rules={[{ required: true }]}
           >
             <Input placeholder="Input Name" />
           </Form.Item>
           <Form.Item
-            label="Contact Person Number"
+            label="Contact Person Number:"
             name="contactPersonPhoneNumber"
             rules={[
               {
@@ -203,23 +203,23 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Space>
         <Space size={"large"}>
           <Form.Item
-            label="Pick Up Point"
+            label="Pick Up Point:"
             name="pickUpPoint"
             rules={[{ required: true }]}
           >
             <Input placeholder="Input Pick Up Point" />
           </Form.Item>
           <Form.Item
-            label="Drop Off Point"
+            label="Drop Off Point:"
             name="dropOffPoint"
             rules={[{ required: true }]}
           >
             <Input placeholder="Input Drop Off Point" />
           </Form.Item>
         </Space>
-        <Space size={"large"}>
+        <Space>
           <Form.Item
-            label="Date (DD/MM/YYYY)"
+            label="Date (DD/MM/YYYY):"
             name="date"
             rules={[{ required: true }]}
           >
@@ -233,7 +233,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
             />
           </Form.Item>
           <Form.Item
-            label="Time (HH:MM)"
+            label="Time (HH:MM):"
             name="time"
             rules={[{ required: true }]}
           >
@@ -249,10 +249,8 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
               changeOnBlur={true}
             />
           </Form.Item>
-        </Space>
-        <Space size={"large"}>
           <Form.Item
-            label="Number of Pax"
+            label="Number of Pax:"
             name="numPax"
             rules={[
               {
@@ -263,7 +261,7 @@ const OneWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
             <InputNumber min={1} step={1} />
           </Form.Item>
           <Form.Item
-            label="Number of Buses"
+            label="Number of Buses:"
             name="numBus"
             rules={[
               {

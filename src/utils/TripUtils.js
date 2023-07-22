@@ -25,5 +25,6 @@ export function createDefaultTripTemplate(
     endTime: ParseTimeToFirestore(endTime, values.date),
     price: 0,
     gst: 0,
+    subConPayment: 0,
   };
 }

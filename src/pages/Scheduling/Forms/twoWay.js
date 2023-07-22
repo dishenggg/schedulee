@@ -103,16 +103,20 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         values.time,
         values.time
       );
+      const valuesForTrip2 = {
+        ...values,
+        pickUpPoint: values.dropOffPoint,
+        dropOffPoint: values.pickUpPoint,
+        time: values.returnTime,
+      };
       const tripDetails2 = createDefaultTripTemplate(
-        values,
+        valuesForTrip2,
         tripDescription2,
         tripType,
         values.returnTime,
         values.returnTime
       );
-      const tripRef = collection(db, "Dates", date, "trips");
-      // console.log(tripDetails1);
-      // console.log(tripDetails2);
+      const tripRef = collection(db, "Trips");
       Promise.all([
         addDoc(tripRef, tripDetails1),
         addDoc(tripRef, tripDetails2),
@@ -141,7 +145,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         }}
       >
         <Form.Item
-          label="Customer Name"
+          label="Customer Name:"
           name="customerName"
           rules={[{ required: true }]}
         >
@@ -196,14 +200,14 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Form.Item>
         <Space size={"large"}>
           <Form.Item
-            label="Contact Person Name"
+            label="Contact Person Name:"
             name="contactPersonName"
             rules={[{ required: true }]}
           >
             <Input placeholder="Input Name" />
           </Form.Item>
           <Form.Item
-            label="Contact Person Number"
+            label="Contact Person Number:"
             name="contactPersonPhoneNumber"
             rules={[
               {
@@ -218,14 +222,14 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Space>
         <Space size={"large"}>
           <Form.Item
-            label="Pick Up Point"
+            label="Pick Up Point:"
             name="pickUpPoint"
             rules={[{ required: true }]}
           >
             <Input placeholder="Input Pick Up Point" />
           </Form.Item>
           <Form.Item
-            label="Drop Off Point"
+            label="Drop Off Point:"
             name="dropOffPoint"
             rules={[{ required: true }]}
           >
@@ -234,7 +238,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Space>
         <Space size={"small"}>
           <Form.Item
-            label="Date (DD/MM/YYYY)"
+            label="Date (DD/MM/YYYY):"
             name="date"
             rules={[{ required: true }]}
           >
@@ -245,7 +249,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
             />
           </Form.Item>
           <Form.Item
-            label="Pick Up Time (HH:MM)"
+            label="Pick Up Time (HH:MM):"
             name="time"
             rules={[
               {
@@ -263,7 +267,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
             />
           </Form.Item>
           <Form.Item
-            label="Return Time (HH:MM)"
+            label="Return Time (HH:MM):"
             name="returnTime"
             rules={[{ required: true }]}
           >
@@ -279,7 +283,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Space>
         <Space size={"large"}>
           <Form.Item
-            label="Number of Pax"
+            label="Number of Pax:"
             name="numPax"
             rules={[
               {
@@ -290,7 +294,7 @@ const TwoWayForm = ({ setOpenModal, updateListOfTripsByDriver }) => {
             <InputNumber min={1} step={1} />
           </Form.Item>
           <Form.Item
-            label="Number of Buses"
+            label="Number of Buses:"
             name="numBus"
             rules={[
               {
