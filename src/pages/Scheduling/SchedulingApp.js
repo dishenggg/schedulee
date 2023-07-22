@@ -239,13 +239,24 @@ export default function SchedulingApp({
                     valueGetter: (params) => {
                         return params.data.type === 'disposal' ||
                             params.data.type === 'tour'
-                            ? `${params.data.startTime} - ${params.data.endTime}`
+                            ? `${params.data.startTime}\n${params.data.endTime}`
                             : `${params.data.startTime}`;
                     },
-                    maxWidth: 145,
+                    maxWidth: 100,
                     rowDrag: editable,
                     autoHeight: true,
                     wrapText: true,
+                    cellStyle: (params) => {
+                        return (
+                            (params.data.type === 'disposal' ||
+                                params.data.type === 'tour') && {
+                                'white-space': 'pre',
+                                'line-height': '20px',
+                                'padding-top': '5px',
+                                'padding-bottom': '5px',
+                            }
+                        );
+                    },
                 },
                 {
                     headerName: 'Trip Description',
