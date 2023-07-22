@@ -101,7 +101,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
         updatedValues.endTime
       );
       console.log(tripDetails);
-      const tripRef = collection(db, "Dates", date, "trips");
+      const tripRef = collection(db, "Trips");
       await addDoc(tripRef, tripDetails);
       updateListOfTripsByDriver();
       message.success("Trip added successfully!");
@@ -127,7 +127,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
         }}
       >
         <Form.Item
-          label="Customer Name"
+          label="Customer Name:"
           name="customerName"
           rules={[{ required: true }]}
         >
@@ -174,7 +174,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
           />
         </Form.Item>
         <Form.Item
-          label="Description"
+          label="Description:"
           name="description"
           rules={[{ required: true }]}
         >
@@ -182,7 +182,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Form.Item>
         <Space size={"large"}>
           <Form.Item
-            label="Contact Person Name"
+            label="Contact Person Name:"
             name="contactPersonName"
             rules={[{ required: true }]}
           >
@@ -203,7 +203,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
           </Form.Item>
         </Space>
         <Form.Item
-          label="Trip Description"
+          label="Trip Description:"
           name="tripDescription"
           rules={[{ required: true }]}
         >
@@ -211,14 +211,14 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Form.Item>
         <Space size={"small"}>
           <Form.Item
-            label="Date (DD/MM/YYYY)"
+            label="Date (DD/MM/YYYY):"
             name="date"
             rules={[{ required: true }]}
           >
             <DatePicker disabledDate={disabledDate} format={"DD/MM/YYYY"} />
           </Form.Item>
           <Form.Item
-            label="Start Time (HH:MM)"
+            label="Start Time (HH:MM):"
             name="startTime"
             rules={[{ required: true }]}
           >
@@ -232,7 +232,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
             />
           </Form.Item>
           <Form.Item
-            label="End Time (HH:MM)"
+            label="End Time (HH:MM):"
             name="endTime"
             rules={[{ required: true }]}
           >
@@ -248,7 +248,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
         </Space>
         <Space size={"large"}>
           <Form.Item
-            label="Number of Pax"
+            label="Number of Pax:"
             name="numPax"
             rules={[
               {
@@ -270,7 +270,7 @@ const DisposalAndTour = ({ setOpenModal, updateListOfTripsByDriver }) => {
             <InputNumber min={1} step={1} />
           </Form.Item>
           <Form.Item
-            label="Trip Type"
+            label="Trip Type:"
             name="tripType"
             rules={[
               {

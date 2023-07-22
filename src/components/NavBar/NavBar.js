@@ -7,7 +7,6 @@ import { Menu, Button } from "antd";
 import {
   DollarOutlined,
   CalendarOutlined,
-  CarOutlined,
   IdcardOutlined,
   LogoutOutlined,
   UserOutlined,

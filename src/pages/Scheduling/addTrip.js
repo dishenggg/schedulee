@@ -24,6 +24,7 @@ const AddTrip = ({ updateListOfTripsByDriver }) => {
       </Button>
       <Modal
         open={openModal}
+        width={700}
         destroyOnClose={true}
         title="Add Trip"
         footer={null}

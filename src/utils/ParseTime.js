@@ -38,3 +38,27 @@ export function parseDateTimeFromStringToFireStore(timeString, dateString) {
     .minute(parseInt(timeString.substring(3, 5)));
   return date;
 }
+
+export function getDatesByDay(startDate, endDate, dayOfWeek) {
+  const start = dayjs(startDate);
+  const end = dayjs(endDate);
+
+  // Find the next occurrence of the specified day of the week after the start date
+  let firstMatchingDate = start.day(dayOfWeek);
+  if (firstMatchingDate.isBefore(start, "day")) {
+    firstMatchingDate = firstMatchingDate.add(7, "day");
+  }
+
+  // Create an array to store the matching dates
+  const matchingDates = [];
+
+  // Loop through each date starting from the first matching date until the end date
+  while (firstMatchingDate.isSameOrBefore(end, "day")) {
+    matchingDates.push(firstMatchingDate.format("DD/MM/YYYY"));
+
+    // Move to the next occurrence of the specified day of the week
+    firstMatchingDate = firstMatchingDate.add(7, "day");
+  }
+
+  return matchingDates;
+}
