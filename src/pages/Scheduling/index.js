@@ -101,7 +101,7 @@ const Scheduling = () => {
       query(
         collection(db, "Trips"),
         where("startTime", ">=", currentDay),
-        where("startTime", "<=", nextDay),
+        where("startTime", "<", nextDay),
         orderBy("startTime")
       )
     );
