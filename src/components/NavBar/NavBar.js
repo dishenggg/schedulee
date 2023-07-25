@@ -10,6 +10,7 @@ import {
   IdcardOutlined,
   LogoutOutlined,
   UserOutlined,
+  CarOutlined,
 } from "@ant-design/icons";
 
 const Navbar = () => {
@@ -46,6 +47,11 @@ const Navbar = () => {
       label: <Link to="/driver-details">Driver Details</Link>,
       key: "driver",
       icon: <IdcardOutlined />,
+    },
+    {
+      label: <Link to="/subcon-details">Sub Con Details</Link>,
+      key: "subcon",
+      icon: <CarOutlined />,
     },
     {
       label: <>{auth?.currentUser?.email}</>,

@@ -160,7 +160,7 @@ function DriverList({ drivers, updateDriverList }) {
           ? "ag-theme-alpine-dark"
           : "ag-theme-alpine"
       }
-      style={{ height: "400px", width: "100%" }}
+      style={{ height: "600px", width: "100%" }}
     >
       <AgGridReact
         rowData={drivers}
