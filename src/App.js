@@ -19,9 +19,9 @@ import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 
 function App() {
   const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("darkMode") === "true" ||
-      localStorage.getItem("darkMode") !== "false"
+    localStorage.getItem("darkMode") === "true"
   );
+
   return (
     <div
       style={{
@@ -63,7 +63,7 @@ function App() {
             bottom: 20,
             right: 20,
           }}
-          icon={<FontAwesomeIcon icon={ darkMode ? faMoon : faSun} />}
+          icon={<FontAwesomeIcon icon={darkMode ? faMoon : faSun} />}
           onClick={() => {
             localStorage.setItem("darkMode", !darkMode);
             setDarkMode(!darkMode);
