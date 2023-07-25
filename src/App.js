@@ -14,7 +14,7 @@ import Login from ".//pages/Login/";
 import NotFound from "./pages/NotFound";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMoon } from "@fortawesome/free-solid-svg-icons";
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 
 function App() {
   const [darkMode, setDarkMode] = useState(
@@ -61,7 +61,7 @@ function App() {
             bottom: 20,
             right: 20,
           }}
-          icon={<FontAwesomeIcon icon={faMoon} />}
+          icon={<FontAwesomeIcon icon={darkMode ? faMoon : faSun} />}
           onClick={() => {
             localStorage.setItem("darkMode", !darkMode);
             setDarkMode(!darkMode);

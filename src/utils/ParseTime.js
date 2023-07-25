@@ -1,16 +1,14 @@
 import dayjs from "dayjs";
 
+//Takes in a dayjs and returns a JS datetime object
 export function ParseDateToFirestore(datetime) {
-  const formattedDate = dayjs(datetime).format("DD/MM/YYYY");
-  const result = formattedDate.replace(/\//g, "");
-  return result;
+  const result = dayjs(datetime);
+  return result.toDate();
 }
 
 export function ParseDateFromFirestore(formattedString) {
-  const day = formattedString.substring(0, 2);
-  const month = formattedString.substring(2, 4);
-  const year = formattedString.substring(4, 8);
-  return new Date(`${month}/${day}/${year}`);
+  const dateTime = dayjs.unix(formattedString);
+  return dateTime;
 }
 
 export function ParseTimeToFirestore(time, date) {
