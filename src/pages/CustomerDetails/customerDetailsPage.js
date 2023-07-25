@@ -6,6 +6,7 @@ import { Space, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { Title } from "../../components/Typography/Title";
 import CustomerTrips from "./customerTrips";
+import { ParseDateToFirestore } from "./../../utils/ParseTime";
 
 const CustomerDetailsPage = () => {
   const { customerName } = useParams();
@@ -13,47 +14,34 @@ const CustomerDetailsPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleDateChange = async (date) => {
-    setSelectedDate(date.toDate());
-
-    // Extract the year and month from the selected date
     const year = date.year();
-    const month = date.month() + 1; // month in dayjs is 0-based index, so we add 1
-
-    // Generate the date array using the selected year and month
-    const dateArray = generateDateArray(year, month);
-
-    // Fetch the trips and update the state when the data is available
-    const trips = await fetchTrips(dateArray);
+    const month = date.month();
+    const dates = getFirstAndLastDayOfMonth(month, year);
+    const trips = await fetchTrips(customerName, dates);
     setListOfTrips(trips);
   };
 
-  function generateDateArray(year, month) {
-    const formattedDates = [];
-    const daysInMonth = new Date(year, month, 0).getDate();
-
-    for (let day = daysInMonth; day >= 1; day--) {
-      const formattedDay = String(day).padStart(2, "0");
-      const formattedMonth = String(month).padStart(2, "0");
-      const formattedYear = String(year);
-      const formattedDate = `${formattedDay}${formattedMonth}${formattedYear}`;
-      formattedDates.push(formattedDate);
-    }
-
-    return formattedDates;
+  function getFirstAndLastDayOfMonth(month, year) {
+    console.log("FIRST LAST FUNCTION");
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 1);
+    return { firstDayOfMonth, lastDayOfMonth };
   }
 
-  const fetchTrips = async (formattedDates) => {
+  const fetchTrips = async (customerName, dates) => {
     try {
-      const promises = formattedDates.map(async (date) => {
-        const querySnapshot = await getDocs(
-          query(
-            collection(db, "Dates", date, "trips"),
-            where("customerName", "==", customerName)
-          )
-        );
-        return querySnapshot.docs.map((trip) => trip.data());
+      const querySnapshot = await getDocs(
+        query(
+          collection(db, "Trips"),
+          where("customerName", "==", customerName),
+          where("startTime", ">=", ParseDateToFirestore(dates.firstDayOfMonth)),
+          where("startTime", "<=", ParseDateToFirestore(dates.lastDayOfMonth))
+        )
+      );
+      const results = [];
+      querySnapshot.forEach((doc) => {
+        results.push(doc.data());
       });
-      const results = await Promise.all(promises);
       const list = results.flat(); // Flatten the array of arrays into a single array
       return list;
     } catch (error) {
@@ -66,11 +54,14 @@ const CustomerDetailsPage = () => {
     // Fetch the trips and update the state when the component mounts
     const initialDate = new Date();
     const initialYear = initialDate.getFullYear();
-    const initialMonth = initialDate.getMonth() + 1;
-    const initialDateArray = generateDateArray(initialYear, initialMonth);
+    const initialMonth = initialDate.getMonth();
+    const initialDateArray = getFirstAndLastDayOfMonth(
+      initialMonth,
+      initialYear
+    );
 
     const fetchInitialTrips = async () => {
-      const trips = await fetchTrips(initialDateArray);
+      const trips = await fetchTrips(customerName, initialDateArray);
       setListOfTrips(trips);
     };
 

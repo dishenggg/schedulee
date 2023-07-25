@@ -142,7 +142,7 @@ export default function SchedulingApp({
         return;
       }
 
-      const docRef = doc(db, "Dates", selectedDate, "trips", data.id);
+      const docRef = doc(db, "Trips", data.id);
       if (newId === unscheduledTrips) {
         await runTransaction(db, async (transaction) => {
           const docSnapshot = await transaction.get(docRef);
@@ -195,7 +195,7 @@ export default function SchedulingApp({
       const handleClick = async (e) => {
         e.preventDefault();
         const data = params.node.data;
-        const docRef = doc(db, "Dates", selectedDate, "trips", data.id);
+        const docRef = doc(db, "Trips", data.id);
         try {
           await runTransaction(db, async (transaction) => {
             const docSnapshot = await transaction.get(docRef);
@@ -234,7 +234,7 @@ export default function SchedulingApp({
               : `${params.data.startTime}`;
           },
           maxWidth: 100,
-          rowDrag: editable,
+          rowDrag: true,
           autoHeight: true,
           wrapText: true,
           cellStyle: (params) => {
