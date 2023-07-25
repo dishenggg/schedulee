@@ -141,7 +141,7 @@ const BusCellRenderer = ({
     try {
       const data = params.node.data;
       const id = data.id;
-      const tripRef = doc(db, "Dates", dateWithoutDashes, "trips", id);
+      const tripRef = doc(db, "Trips", id);
       await runTransaction(db, async (transaction) => {
         const docSnapshot = await transaction.get(tripRef);
         transaction.update(docSnapshot.ref, {
