@@ -1,5 +1,10 @@
 import { ParseTimeToFirestore } from "./ParseTime";
 
+//Function will be used to check if trip is considered Peak period, used during Create and Update of trips
+export function checkPeak(tripDateAndTime) {
+  return false;
+}
+
 //Used to create default form to be sent in FB
 export function createDefaultTripTemplate(
   values,
@@ -8,6 +13,7 @@ export function createDefaultTripTemplate(
   startTime,
   endTime
 ) {
+  const tripStartTime = ParseTimeToFirestore(startTime, values.date);
   return {
     bus: [],
     customerName: values.customerName,
@@ -21,8 +27,9 @@ export function createDefaultTripTemplate(
     numBus: values.numBus,
     numBusAssigned: 0,
     tripDescription: tripDescription,
-    startTime: ParseTimeToFirestore(startTime, values.date),
+    startTime: tripStartTime,
     endTime: ParseTimeToFirestore(endTime, values.date),
+    isPeak: checkPeak(tripStartTime),
     price: 0,
     gst: 0,
     subConPayment: 0,

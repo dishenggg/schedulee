@@ -10,6 +10,7 @@ import Scheduling from ".//pages/Scheduling/";
 import CustomerDetails from ".//pages/CustomerDetails/";
 import CustomerDetailsPage from "./pages/CustomerDetails/customerDetailsPage";
 import DriverDetails from ".//pages/DriverDetails/";
+import SubConDetails from "./pages/SubConDetails";
 import Login from ".//pages/Login/";
 import NotFound from "./pages/NotFound";
 import { useState } from "react";
@@ -49,6 +50,7 @@ function App() {
                   element={<CustomerDetailsPage />}
                 />
                 <Route path="/driver-details" element={<DriverDetails />} />
+                <Route path="/subcon-details" element={<SubConDetails />} />
               </Route>
               <Route path="/login" element={<Login />} />
               <Route path="*" element={<NotFound />} />
@@ -61,7 +63,7 @@ function App() {
             bottom: 20,
             right: 20,
           }}
-          icon={<FontAwesomeIcon icon={darkMode ? faMoon : faSun} />}
+          icon={<FontAwesomeIcon icon={ darkMode ? faMoon : faSun} />}
           onClick={() => {
             localStorage.setItem("darkMode", !darkMode);
             setDarkMode(!darkMode);
