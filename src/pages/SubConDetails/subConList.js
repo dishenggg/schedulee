@@ -73,7 +73,6 @@ function SubConList({ subCons, updateSubConsList }) {
   }
 
   function handleDelete(data) {
-    console.log(data);
     deleteDoc(doc(db, "Sub Cons", data.id))
       .then(() => {
         message.success(data.id + " deleted successfully!");
@@ -106,17 +105,17 @@ function SubConList({ subCons, updateSubConsList }) {
   }
 
   function openModal(params) {
-    // const rowData = params.node.data;
-    // const customerDetailsUrl = `/customer-details/${rowData.customerName}`;
+    const rowData = params.node.data;
+    const detailsUrl = `/subcon-details/${rowData.companyName}`;
     return (
-      // <Link
-      //   to={{
-      //     pathname: customerDetailsUrl,
-      //   }}
-      //   target="_blank"
-      // >
-      <Button shape="circle" icon={<FileTextOutlined />}></Button>
-      // </Link>
+      <Link
+        to={{
+          pathname: detailsUrl,
+        }}
+        target="_blank"
+      >
+        <Button shape="circle" icon={<FileTextOutlined />}></Button>
+      </Link>
     );
   }
 
