@@ -29,7 +29,7 @@ const Scheduling = () => {
   const [listOfSubCons, setListOfSubCons] = useState([]);
   const [driverDetails, setDriverDetails] = useState({});
 
-  const handleDateChange = (date, dateString) => {
+  const handleDateChange = useCallback((date, dateString) => {
     setSelectedDate(date.toDate());
 
     const currentDate = new Date();
@@ -39,12 +39,14 @@ const Scheduling = () => {
     } else {
       setEditable(true);
     }
-  };
+  }, []);
 
   const formattedDate = useMemo(
     () => selectedDate.toLocaleDateString("en-GB"),
     [selectedDate]
   );
+
+  const datePickerDefault = useMemo(() => dayjs(), []);
 
   const populateListOfTripsByDriver = (trips) => {
     const res = {
@@ -161,7 +163,7 @@ const Scheduling = () => {
             allowClear={false}
             id="date-input"
             format="DD-MM-YYYY"
-            defaultValue={dayjs()}
+            defaultValue={datePickerDefault}
             onChange={handleDateChange}
           />
         </Space>
