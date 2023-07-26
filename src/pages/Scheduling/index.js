@@ -23,6 +23,8 @@ const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editable, setEditable] = useState(true);
   const [listOfTripsByDriver, setListOfTripsByDriver] = useState({});
+  const [listOfTripsBySubCon, setListOfTripsBySubCon] = useState({});
+  const [listofUnscheduledTrips, setListOfUnscheduledTrips] = useState([]);
   const [listOfDrivers, setListOfDrivers] = useState([]);
   const [listOfTrips, setListOfTrips] = useState([]);
   const [listOfSubCons, setListOfSubCons] = useState([]);
@@ -47,24 +49,35 @@ const Scheduling = () => {
 
   const datePickerDefault = useMemo(() => dayjs(), []);
 
-  const populateListOfTripsByDriver = (trips) => {
-    const res = {
-      "Unscheduled Trips": [],
-    };
+  const populateListOfTripsByDriverOrSubCon = (trips) => {
+    const subConSet = new Set(listOfSubCons.map((subCon) => subCon.id));
+    const drivers = {};
+    const unscheduledTrips = [];
+
+    const subCons = {};
 
     trips.forEach((trip) => {
       if (trip.numBusAssigned < trip.numBus) {
-        res["Unscheduled Trips"].push(trip);
+        unscheduledTrips.push(trip);
       }
 
       trip.bus.forEach((driverOrSubConId) => {
-        if (!res[driverOrSubConId]) {
-          res[driverOrSubConId] = [];
+        if (subConSet.has(driverOrSubConId)) {
+          if (!subCons[driverOrSubConId]) {
+            subCons[driverOrSubConId] = [];
+          }
+          subCons[driverOrSubConId].push(trip);
+        } else {
+          if (!drivers[driverOrSubConId]) {
+            drivers[driverOrSubConId] = [];
+          }
+          drivers[driverOrSubConId].push(trip);
         }
-        res[driverOrSubConId].push(trip);
       });
     });
-    setListOfTripsByDriver(res);
+    setListOfTripsByDriver(drivers);
+    setListOfTripsBySubCon(subCons);
+    setListOfUnscheduledTrips(unscheduledTrips);
   };
 
   const populateListOfDrivers = async () => {
@@ -95,9 +108,6 @@ const Scheduling = () => {
     let nextDay = currentDay.getTime() + 60 * 60 * 24 * 1000;
     nextDay = new Date(nextDay);
 
-    console.log("yeboi");
-    console.log(currentDay);
-    console.log(nextDay);
     const tripsQuery = await getDocs(
       query(
         collection(db, "Trips"),
@@ -120,25 +130,21 @@ const Scheduling = () => {
       res[row.busNumber] = { ...row };
     });
     subCons.forEach((row) => {
-      res[row.busNumber] = { ...row };
+      res[row.id] = { ...row };
     });
     setDriverDetails(res);
   };
 
   const updateListOfTripsByDriver = useCallback(() => {
     populateListOfTrips(selectedDate);
-    //populateListOfDrivers();
-    //populateListOfSubCons();
   }, [selectedDate]);
 
   useEffect(() => {
-    //populateListOfDrivers();
-    //populateListOfSubCons();
     populateListOfTrips(selectedDate);
   }, [selectedDate]);
 
   useEffect(() => {
-    populateListOfTripsByDriver(listOfTrips);
+    populateListOfTripsByDriverOrSubCon(listOfTrips);
   }, [listOfTrips]);
 
   useEffect(() => {
@@ -206,6 +212,8 @@ const Scheduling = () => {
                   selectedDate={formattedDate}
                   editable={editable}
                   listOfTripsByDriver={listOfTripsByDriver}
+                  listOfTripsBySubCon={listOfTripsBySubCon}
+                  listofUnscheduledTrips={listofUnscheduledTrips}
                   drivers={listOfDrivers}
                   subCons={listOfSubCons}
                   updateListOfTripsByDriver={updateListOfTripsByDriver}
