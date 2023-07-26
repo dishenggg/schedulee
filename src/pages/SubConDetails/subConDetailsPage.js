@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -11,9 +11,9 @@ import { ParseDateToFirestore } from "./../../utils/ParseTime";
 const SubConDetailsPage = () => {
   const { SubConName } = useParams();
   const [listOfTrips, setListOfTrips] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  const handleDateChange = async (date) => {
+  const populateListOfTrips = async (date) => {
     const year = date.year();
     const month = date.month();
     const dates = getFirstAndLastDayOfMonth(month, year);
@@ -27,6 +27,10 @@ const SubConDetailsPage = () => {
     return { firstDayOfMonth, lastDayOfMonth };
   }
 
+  const updateListOfTripsByDriver = useCallback(() => {
+    populateListOfTrips(selectedDate);
+  }, [selectedDate]);
+
   const fetchTrips = async (SubConName, dates) => {
     try {
       const querySnapshot = await getDocs(
@@ -37,11 +41,11 @@ const SubConDetailsPage = () => {
           where("startTime", "<=", ParseDateToFirestore(dates.lastDayOfMonth))
         )
       );
-      const results = [];
-      querySnapshot.forEach((doc) => {
-        results.push(doc.data());
-      });
-      const list = results.flat(); // Flatten the array of arrays into a single array
+      const list = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
       return list;
     } catch (error) {
       console.error("Error fetching trips:", error);
@@ -80,12 +84,16 @@ const SubConDetailsPage = () => {
             id="date-input"
             format="MM-YYYY"
             defaultValue={dayjs()}
-            onChange={handleDateChange}
+            onChange={(date) => populateListOfTrips(date)}
             picker="month"
           />
         </Space>
       </div>
-      <SubConTrips trips={listOfTrips} selectedDate={selectedDate} />
+      <SubConTrips
+        trips={listOfTrips}
+        selectedDate={selectedDate}
+        updateListOfTripsByDriver={updateListOfTripsByDriver}
+      />
     </>
   );
 };

@@ -26,7 +26,6 @@ function SubConList({ subCons, updateSubConsList }) {
     {
       headerName: "Tag",
       field: "tag",
-      editable: true,
       flex: 2,
     },
     {
@@ -137,7 +136,7 @@ function SubConList({ subCons, updateSubConsList }) {
           stopEditingWhenCellsLoseFocus={true}
         />
       </div>
-    </div>
+    </div>  
   );
 }
 

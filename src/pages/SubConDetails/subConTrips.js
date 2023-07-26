@@ -1,4 +1,6 @@
 import { useMemo, useCallback, useRef } from "react";
+import { updateDoc, doc } from "firebase/firestore";
+import { db } from "../../firebase";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -6,9 +8,9 @@ import {
   ParseTimeFromFirestoreToString,
   ParseTimeFromFirestore,
 } from "../../utils/ParseTime";
-import { Input } from "antd";
+import { Input, message } from "antd";
 
-const SubConTrips = ({ trips }) => {
+const SubConTrips = ({ trips, updateListOfTripsByDriver }) => {
   const gridRef = useRef();
   const defaultColDef = useMemo(() => {
     return {
@@ -35,17 +37,34 @@ const SubConTrips = ({ trips }) => {
     );
   }, []);
 
+  const onCellValueChanged = (params) => {
+    const { id, ...updatedData } = params.data;
+    try {
+      const confirmUpdate = window.confirm(
+        "Are you sure you want to Update this?"
+      );
+      if (confirmUpdate) {
+        updateDoc(doc(db, "Trips", id), updatedData)
+          .then(() => {
+            message.success("Successfully Updated");
+          })
+          .catch((error) => {
+            message.error("Failed to update trip: " + error);
+          });
+        updateListOfTripsByDriver();
+      }
+    } catch (error) {
+      message.error(error.toString());
+    }
+    updateListOfTripsByDriver();
+  };
+
   const columnDefs = [
     {
       headerName: "Booking Date",
       field: "startTime",
-      flex: 2,
+      flex: 1,
       valueFormatter: getTime,
-    },
-    {
-      headerName: "Pick Up",
-      field: "pickUpPoint",
-      flex: 4,
     },
     {
       headerName: "Time",
@@ -54,18 +73,29 @@ const SubConTrips = ({ trips }) => {
       valueFormatter: formatTime,
     },
     {
+      headerName: "Pick Up",
+      field: "pickUpPoint",
+      flex: 4,
+    },
+    {
       headerName: "Drop Off",
       field: "dropOffPoint",
       flex: 3,
     },
     {
-      headerName: "No. Bus",
+      headerName: "No. Of Bus",
       field: "",
       flex: 1,
     },
     {
       headerName: "Amount",
       field: "subConPayment",
+      flex: 1,
+      editable: true,
+    },
+    {
+      headerName: "Remarks",
+      field: "subConRemarks",
       flex: 1,
       editable: true,
     },
@@ -97,6 +127,7 @@ const SubConTrips = ({ trips }) => {
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           stopEditingWhenCellsLoseFocus={true}
+          onCellValueChanged={onCellValueChanged}
           cacheQuickFilter={true}
         />
       </div>
