@@ -30,14 +30,14 @@ export default function SchedulingApp({
   const unscheduledTrips = "Unscheduled Trips";
 
   const gridRefs = useRef({});
-  const [gridMapToDriverId, setGridMapToDriverId] = useState({});
+  const gridMapToDriverId = useRef({});
   const [dragStartId, setDragStartId] = useState(null);
   const [dragStarted, setDragStarted] = useState(false);
   const [displayedGridIds, setDisplayedGridIds] = useState([]);
 
   const getRowId = useCallback((params) => params.data.id, []);
 
-  const onGridReady = (params, gridKey) => {
+  const onGridReady = useCallback((params, gridKey) => {
     for (const grid in gridRefs.current) {
       const oldDropZoneParams = gridRefs.current[grid].getRowDropZoneParams();
 
@@ -48,8 +48,8 @@ export default function SchedulingApp({
 
     // Add params to gridRefs and gridMap
     gridRefs.current[gridKey] = params.api;
-    gridMapToDriverId[params.api.getGridId()] = gridKey;
-  };
+    gridMapToDriverId.current[params.api.getGridId()] = gridKey;
+  }, []);
 
   useEffect(() => {
     setDisplayedGridIds(Object.keys(listOfTripsByDriver));
@@ -115,8 +115,8 @@ export default function SchedulingApp({
 
   const onRowDragEnd = async (params) => {
     try {
-      const oldId = gridMapToDriverId[dragStartId];
-      const newId = gridMapToDriverId[params.api.getGridId()];
+      const oldId = gridMapToDriverId.current[dragStartId];
+      const newId = gridMapToDriverId.current[params.api.getGridId()];
       const data = params.node.data;
       // Do nothing if dropped in same grid
       if (oldId === newId) {
