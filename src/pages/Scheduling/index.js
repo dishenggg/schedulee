@@ -3,11 +3,10 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
-  // lazy,
-  // Suspense,
+  lazy,
+  Suspense,
 } from "react";
 import { Space, DatePicker, Tabs } from "antd";
-import SchedulingApp from "./SchedulingApp";
 import AddMultipleTrips from "./Forms/addMultipleTrips";
 import { Title } from "../../components/Typography/Title";
 import AddTrip from "./addTrip.js";
@@ -16,9 +15,9 @@ import { db } from "../../firebase";
 import { collection, getDocs, where, query, orderBy } from "firebase/firestore";
 // import { ParseDateToFirestore } from '../../utils/ParseTime';
 import dayjs from "dayjs";
-import AllTrips from "./AllTrips";
 
-//const SchedulingApp = lazy(() => import('./SchedulingApp'));
+const SchedulingApp = lazy(() => import("./SchedulingApp"));
+const AllTrips = lazy(() => import("./AllTrips"));
 
 const Scheduling = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -185,30 +184,34 @@ const Scheduling = () => {
             label: "All Trips",
             key: 0,
             children: (
-              <AllTrips
-                drivers={listOfDrivers}
-                subCons={listOfSubCons}
-                trips={listOfTrips}
-                selectedDate={formattedDate}
-                listOfTripsByDriver={listOfTripsByDriver}
-                updateListOfTripsByDriver={updateListOfTripsByDriver}
-                driverDetails={driverDetails}
-              />
+              <Suspense>
+                <AllTrips
+                  drivers={listOfDrivers}
+                  subCons={listOfSubCons}
+                  trips={listOfTrips}
+                  selectedDate={formattedDate}
+                  listOfTripsByDriver={listOfTripsByDriver}
+                  updateListOfTripsByDriver={updateListOfTripsByDriver}
+                  driverDetails={driverDetails}
+                />
+              </Suspense>
             ),
           },
           {
             label: "Scheduler",
             key: 1,
             children: (
-              <SchedulingApp
-                selectedDate={formattedDate}
-                editable={editable}
-                listOfTripsByDriver={listOfTripsByDriver}
-                drivers={listOfDrivers}
-                subCons={listOfSubCons}
-                updateListOfTripsByDriver={updateListOfTripsByDriver}
-                driverDetails={driverDetails}
-              />
+              <Suspense>
+                <SchedulingApp
+                  selectedDate={formattedDate}
+                  editable={editable}
+                  listOfTripsByDriver={listOfTripsByDriver}
+                  drivers={listOfDrivers}
+                  subCons={listOfSubCons}
+                  updateListOfTripsByDriver={updateListOfTripsByDriver}
+                  driverDetails={driverDetails}
+                />
+              </Suspense>
             ),
           },
         ]}
