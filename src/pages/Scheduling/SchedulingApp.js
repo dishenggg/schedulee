@@ -57,6 +57,18 @@ export default function SchedulingApp({
     gridMapToDriverId.current[params.api.getGridId()] = gridKey;
   }, []);
 
+  const compactListOfTripsBySubcon = useMemo(() => {
+    const res = {};
+    Object.keys(listOfTripsBySubCon).forEach((subCon) => {
+      subConTrips = {};
+      listOfTripsBySubCon[subCon].forEach((trip) => {
+        if (subConTrips.hasOwnProperty(trip.id)) {
+          subConTrips[trip.id] = { ...trip };
+        }
+      });
+    });
+  }, listOfTripsBySubCon);
+
   useEffect(() => {
     setScheduledTrips({ ...listOfTripsByDriver, ...listOfTripsBySubCon });
   }, [listOfTripsBySubCon, listOfTripsByDriver]);
@@ -366,7 +378,6 @@ export default function SchedulingApp({
     const remarks = driverData["remarks"] ? driverData["remarks"] : "";
     if (subConSet.has(driverId)) {
       driverId = driverDetails[driverId].tag;
-      console.log(driverId);
     }
 
     return (
