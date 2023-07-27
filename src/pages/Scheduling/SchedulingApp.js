@@ -22,18 +22,24 @@ export default function SchedulingApp({
   selectedDate,
   editable,
   listOfTripsByDriver,
+  listOfTripsBySubCon,
+  listofUnscheduledTrips,
   drivers,
   subCons,
   updateListOfTripsByDriver,
   driverDetails,
 }) {
   const unscheduledTrips = "Unscheduled Trips";
-
   const gridRefs = useRef({});
   const gridMapToDriverId = useRef({});
   const [dragStartId, setDragStartId] = useState(null);
   const [dragStarted, setDragStarted] = useState(false);
-  const [displayedGridIds, setDisplayedGridIds] = useState([]);
+  const [displayedGridIds, setDisplayedGridIds] = useState(new Set());
+  const [scheduledTrips, setScheduledTrips] = useState([]);
+  const subConSet = useMemo(
+    () => new Set(subCons.map((subCon) => subCon.tag)),
+    [subCons]
+  );
 
   const getRowId = useCallback((params) => params.data.id, []);
 
@@ -51,12 +57,34 @@ export default function SchedulingApp({
     gridMapToDriverId.current[params.api.getGridId()] = gridKey;
   }, []);
 
+  const compactListOfTripsBySubcon = useMemo(() => {
+    const res = {};
+    Object.keys(listOfTripsBySubCon).forEach((subCon) => {
+      const subConTrips = {};
+      listOfTripsBySubCon[subCon].forEach((trip) => {
+        if (subConTrips.hasOwnProperty(trip.id)) {
+          const { count, ...rest } = subConTrips[trip.id];
+          subConTrips[trip.id] = { count: count + 1, ...rest };
+        } else {
+          subConTrips[trip.id] = { ...trip, count: 1 };
+        }
+      });
+      res[subCon] = Object.values(subConTrips);
+    });
+    return res;
+  }, [listOfTripsBySubCon]);
+
   useEffect(() => {
-    setDisplayedGridIds(Object.keys(listOfTripsByDriver));
-  }, [listOfTripsByDriver]);
+    setScheduledTrips({ ...listOfTripsByDriver, ...listOfTripsBySubCon });
+  }, [listOfTripsBySubCon, listOfTripsByDriver]);
+
+  useEffect(() => {
+    setDisplayedGridIds(new Set(Object.keys(scheduledTrips)));
+  }, [scheduledTrips]);
 
   const checkTimeClash = useCallback(
     (data, driverId) => {
+      if (subConSet.has(driverId)) return false;
       // Check for timing clashes with existing trips
       const newTripStartTime = parseDateTimeFromStringToFireStore(
         data.startTime,
@@ -94,26 +122,34 @@ export default function SchedulingApp({
       setDragStartId(gridId);
 
       // Conditionally show grids with busSize < paxSize or timing clashes
-      const gridsToShow = Object.keys(driverDetails).filter((driverId) => {
-        if (driverId === unscheduledTrips) {
-          return true; // Always display unscheduled trips grid
-        }
-
+      const gridsToShow = new Set([...subCons.map((subcon) => subcon.id)]);
+      drivers.forEach((driver) => {
+        const driverId = driver.id;
         const driverObj = driverDetails[driverId];
         const busSize = driverObj.busSize;
         const draggedRowData = params.node.data;
         const paxSize = draggedRowData.numPax;
 
         if (busSize < paxSize) {
-          return false; // Hide grid if bus size is smaller than required
+          // Hide grid if bus size is smaller than required
+          return;
         }
-        return !checkTimeClash(draggedRowData, driverId); // Display grid if there are no clashes or bus size issues
+        if (!checkTimeClash(draggedRowData, driverId)) {
+          // Display grid if there are no clashes or bus size issues
+          gridsToShow.add(driverId);
+        }
       });
       setDisplayedGridIds(gridsToShow);
     }
   };
 
   const onRowDragEnd = async (params) => {
+    const removeFromArr = (array, item) => {
+      var index = array.indexOf(item);
+      if (index !== -1) {
+        array.splice(index, 1);
+      }
+    };
     try {
       const oldId = gridMapToDriverId.current[dragStartId];
       const newId = gridMapToDriverId.current[params.api.getGridId()];
@@ -146,27 +182,31 @@ export default function SchedulingApp({
       if (newId === unscheduledTrips) {
         await runTransaction(db, async (transaction) => {
           const docSnapshot = await transaction.get(docRef);
+          const busArr = docSnapshot.data().bus;
+          removeFromArr(busArr, oldId);
           transaction.update(docSnapshot.ref, {
-            bus: arrayRemove(oldId),
-            numBusAssigned: docSnapshot.data().numBusAssigned - 1,
+            bus: busArr,
+            numBusAssigned: busArr.length,
           });
         });
       } else if (oldId === unscheduledTrips) {
         await runTransaction(db, async (transaction) => {
           const docSnapshot = await transaction.get(docRef);
+          const busArr = docSnapshot.data().bus;
+          busArr.push(newId);
           transaction.update(docSnapshot.ref, {
-            bus: arrayUnion(newId),
-            numBusAssigned: docSnapshot.data().numBusAssigned + 1,
+            bus: busArr,
+            numBusAssigned: busArr.length,
           });
         });
       } else {
         await runTransaction(db, async (transaction) => {
           const docSnapshot = await transaction.get(docRef);
+          const busArr = docSnapshot.data().bus;
+          removeFromArr(busArr, oldId);
+          busArr.push(newId);
           transaction.update(docSnapshot.ref, {
-            bus: arrayRemove(oldId),
-          });
-          transaction.update(docSnapshot.ref, {
-            bus: arrayUnion(newId),
+            bus: busArr,
           });
         });
       }
@@ -176,12 +216,12 @@ export default function SchedulingApp({
     } finally {
       setDragStarted(false);
       setDragStartId(null);
-      setDisplayedGridIds(Object.keys(listOfTripsByDriver));
+      setDisplayedGridIds(new Set(Object.keys(scheduledTrips)));
     }
   };
 
   const onDragStopped = () => {
-    setDisplayedGridIds(Object.keys(listOfTripsByDriver));
+    setDisplayedGridIds(new Set(Object.keys(scheduledTrips)));
   };
 
   const defaultColDef = useMemo(() => {
@@ -263,11 +303,16 @@ export default function SchedulingApp({
           ...cols,
           {
             headerName: "",
-            flex: 7,
+            flex: 5,
             cellRenderer: unassignCellRenderer,
             cellRendererParams: {
               driverId: driverId,
             },
+          },
+          {
+            headerName: "count",
+            field: "count",
+            flex: 1,
           },
         ];
       } else {
@@ -293,13 +338,14 @@ export default function SchedulingApp({
   );
 
   const copyToText = useCallback(
-    (e, driverTripData) => {
+    (e, driverId, driverTripData) => {
+      console.log(driverTripData);
       e.preventDefault();
       const textDate = `${selectedDate.substring(
         0,
         2
-      )}/${selectedDate.substring(2, 4)}`;
-      const res = [textDate, "\n"];
+      )}/${selectedDate.substring(3, 5)}`;
+      const res = [textDate, " ", driverId, "\n"];
       driverTripData.forEach((data) => {
         if (data.type === "disposal" || data.type === "tour") {
           res.push(`Time: ${data.startTime} to ${data.endTime}\n`);
@@ -317,8 +363,8 @@ export default function SchedulingApp({
     [selectedDate]
   );
 
-  const generateGrid = (driverId, style) => {
-    const driverTrips = listOfTripsByDriver[driverId] || [];
+  const generateGrid = (driverId, driverTrips, style) => {
+    driverTrips = driverTrips || [];
 
     const driverTripData = driverTrips.map(
       ({ startTime, startTime2, endTime, ...rest }) => {
@@ -333,26 +379,25 @@ export default function SchedulingApp({
       }
     );
 
-    var busSize = "";
-    var contactNumber = "";
-    var remarks = "";
     const driverObj = driverDetails[driverId];
     const driverData = { ...driverObj }; // it doesnt work without this i dont know why
-    if (driverId !== unscheduledTrips) {
-      busSize = driverData["busSize"];
-      contactNumber = driverData["contactNumber"];
-      remarks = driverData["remarks"];
+
+    const busSize = driverData["busSize"] ? `(${driverData["busSize"]})` : "";
+    const contactNumber = driverData["contactNumber"]
+      ? `HP: ${driverData["contactNumber"]}`
+      : "";
+    const remarks = driverData["remarks"] ? driverData["remarks"] : "";
+    if (subConSet.has(driverId)) {
+      driverId = driverDetails[driverId].tag;
     }
 
     return (
       <>
         <Title level={4}>
-          {driverId === unscheduledTrips
-            ? `${driverId}`
-            : `${driverId} (${busSize}) HP: ${contactNumber} ${remarks || ""}`}
+          {`${driverId} ${busSize} ${contactNumber} ${remarks}`}
           {driverId !== unscheduledTrips && (
             <Button
-              onClick={(e) => copyToText(e, driverTripData)}
+              onClick={(e) => copyToText(e, driverId, driverTripData)}
               shape={"circle"}
               icon={<CopyOutlined />}
             />
@@ -374,7 +419,7 @@ export default function SchedulingApp({
             suppressHorizontalScroll={true}
             onGridReady={(params) => onGridReady(params, driverId)}
             animateRows={true}
-            getRowId={getRowId}
+            //getRowId={getRowId}
             onRowDragEnter={onRowDragEnter}
             onRowDragEnd={onRowDragEnd}
             onDragStopped={onDragStopped}
@@ -384,11 +429,12 @@ export default function SchedulingApp({
     );
   };
 
-  const generateGrids = (drivers, gridStyle) => {
+  const generateGrids = (drivers, listOfTripsByDriver, gridStyle) => {
     return [...drivers].map((driver) => {
       const driverId = driver.id;
+
       // Check if the gridId is present in the displayedGridIds state
-      const isDisplayed = displayedGridIds.includes(driverId);
+      const isDisplayed = displayedGridIds.has(driverId);
 
       return (
         <div
@@ -398,7 +444,7 @@ export default function SchedulingApp({
             display: isDisplayed ? "block" : "none",
           }}
         >
-          {generateGrid(driverId, gridStyle)}
+          {generateGrid(driverId, listOfTripsByDriver[driverId], gridStyle)}
           {/* Pass the gridStyle to generateGrid */}
         </div>
       );
@@ -416,38 +462,42 @@ export default function SchedulingApp({
           marginLeft: "20px",
         }}
       >
-        {generateGrid(unscheduledTrips, {
+        {generateGrid(unscheduledTrips, listofUnscheduledTrips, {
           height: "60dvh",
         })}
       </div>
       <div style={{ marginLeft: "50px", flexGrow: 1 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-            gap: "10px",
-          }}
-        >
-          {generateGrids(drivers, {
-            height: "400px",
-            width: "400px",
-            margin: "10px 0px 30px 0px",
-          })}
-        </div>
-        <Title level={2} style={{ marginTop: "60px" }}>
-          Sub Con
+        <Title level={2} style={{ marginTop: "0px" }}>
+          Sub Cons
         </Title>
         <div
           style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
             gap: "10px",
             marginBottom: "50px",
           }}
         >
-          {generateGrids(subCons, {
+          {generateGrids(subCons, compactListOfTripsBySubcon, {
             height: "400px",
-            width: "400px",
+            width: "500px",
             margin: "10px 0px 30px 00px",
+          })}
+        </div>
+        <Title level={2} style={{ marginTop: "60px" }}>
+          Drivers
+        </Title>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
+            gap: "10px",
+          }}
+        >
+          {generateGrids(drivers, listOfTripsByDriver, {
+            height: "400px",
+            width: "500px",
+            margin: "10px 0px 30px 0px",
           })}
         </div>
       </div>
