@@ -2,7 +2,11 @@ import { useMemo, useRef, useCallback } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { ParseTimeFromFirestoreToString } from "../../utils/ParseTime";
+import {
+  ParseTimeFromFirestoreToString,
+  FormatDateAndTime,
+  ParseStringToDateTime,
+} from "../../utils/ParseTime";
 import { Title } from "../../components/Typography/Title";
 import { Button, Checkbox, Col, Row, message, Popconfirm } from "antd";
 import BusCellRenderer from "./BusCellRenderer";
@@ -36,10 +40,6 @@ function AllTrips({
       minWidth: 100,
     };
   }, []);
-
-  const formatTime = (params) => {
-    return ParseTimeFromFirestoreToString(params.value);
-  };
 
   const busCellRenderer = useCallback(
     (params) => {
@@ -86,6 +86,15 @@ function AllTrips({
       return 2;
     } else {
       return 1;
+    }
+  };
+
+  const timeColSpan = (params) => {
+    const type = params.data.type;
+    if (type === "disposal" || type === "tour") {
+      return 1;
+    } else {
+      return 2;
     }
   };
 
@@ -168,6 +177,55 @@ function AllTrips({
     return valueChanged;
   };
 
+  const getStartDateTime = (params) => {
+    return FormatDateAndTime(params.data.startTime);
+  };
+
+  const getEndDateTime = (params) => {
+    return FormatDateAndTime(params.data.endTime);
+  };
+
+  const startTimeSet = (params) => {
+    const newVal = params.newValue;
+    const oldVal = params.data.startTime;
+    const type = params.data.type;
+    console.log(newVal, oldVal);
+    console.log(params.data);
+    console.log(params);
+    const valueChanged = newVal !== oldVal;
+    if (valueChanged) {
+      if (type === "disposal") {
+        params.data.startTime = timeSet(newVal);
+      } else {
+        params.data.startTime = timeSet(newVal);
+        params.data.endTime = timeSet(newVal);
+      }
+      return valueChanged;
+    }
+  };
+
+  const endTimeSet = (params) => {
+    const newVal = params.newValue;
+    const oldVal = params.data.endTime;
+    const valueChanged = newVal !== oldVal;
+    if (valueChanged) {
+      params.data.endTime = timeSet(newVal);
+    }
+    return valueChanged;
+  };
+
+  const timeSet = (timeString) => {
+    return ParseStringToDateTime(timeString);
+  };
+
+  const showStartTime = (params) => {
+    return ParseTimeFromFirestoreToString(params.data.startTime);
+  };
+
+  const showEndTime = (params) => {
+    return ParseTimeFromFirestoreToString(params.data.endTime);
+  };
+
   const columnDefs = useMemo(() => {
     return [
       {
@@ -187,14 +245,19 @@ function AllTrips({
         headerName: "Start Time",
         field: "startTime",
         flex: 12,
-        valueFormatter: formatTime,
+        valueGetter: getStartDateTime,
+        valueFormatter: showStartTime,
+        valueSetter: startTimeSet,
+        colSpan: timeColSpan,
         maxWidth: 100,
       },
       {
         headerName: "End Time",
         field: "endTime",
         flex: 12,
-        valueFormatter: formatTime,
+        valueGetter: getEndDateTime,
+        valueFormatter: showEndTime,
+        valueSetter: endTimeSet,
         maxWidth: 100,
       },
       {
@@ -243,6 +306,7 @@ function AllTrips({
       {
         headerName: "",
         flex: 1,
+        editable: false,
         cellRenderer: numUnassignedRenderer,
         valueGetter: (params) =>
           params.data.numBus - params.data.numBusAssigned,
