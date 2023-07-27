@@ -338,13 +338,14 @@ export default function SchedulingApp({
   );
 
   const copyToText = useCallback(
-    (e, driverTripData) => {
+    (e, driverId, driverTripData) => {
+      console.log(driverTripData);
       e.preventDefault();
       const textDate = `${selectedDate.substring(
         0,
         2
-      )}/${selectedDate.substring(2, 4)}`;
-      const res = [textDate, "\n"];
+      )}/${selectedDate.substring(3, 5)}`;
+      const res = [textDate, " ", driverId, "\n"];
       driverTripData.forEach((data) => {
         if (data.type === "disposal" || data.type === "tour") {
           res.push(`Time: ${data.startTime} to ${data.endTime}\n`);
@@ -396,7 +397,7 @@ export default function SchedulingApp({
           {`${driverId} ${busSize} ${contactNumber} ${remarks}`}
           {driverId !== unscheduledTrips && (
             <Button
-              onClick={(e) => copyToText(e, driverTripData)}
+              onClick={(e) => copyToText(e, driverId, driverTripData)}
               shape={"circle"}
               icon={<CopyOutlined />}
             />
