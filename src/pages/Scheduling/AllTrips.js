@@ -239,6 +239,7 @@ function AllTrips({
         cellRenderer: busCellRenderer,
         autoHeight: true,
         wrapText: true,
+        editable: false,
       },
       {
         headerName: "",
@@ -327,6 +328,7 @@ function AllTrips({
           isExternalFilterPresent={isExternalFilterPresent}
           doesExternalFilterPass={doesExternalFilterPass}
           getRowId={getRowId}
+          suppressCellFocus={true}
         />
       </div>
     </>
