@@ -11,6 +11,7 @@ import CustomerDetails from ".//pages/CustomerDetails/";
 import CustomerDetailsPage from "./pages/CustomerDetails/customerDetailsPage";
 import DriverDetails from ".//pages/DriverDetails/";
 import SubConDetails from "./pages/SubConDetails";
+import SubConDetailsPage from "./pages/SubConDetails/subConDetailsPage";
 import Login from ".//pages/Login/";
 import NotFound from "./pages/NotFound";
 import { useState } from "react";
@@ -51,6 +52,10 @@ function App() {
                 />
                 <Route path="/driver-details" element={<DriverDetails />} />
                 <Route path="/subcon-details" element={<SubConDetails />} />
+                <Route
+                  path="/subcon-details/:SubConName"
+                  element={<SubConDetailsPage />}
+                />
               </Route>
               <Route path="/login" element={<Login />} />
               <Route path="*" element={<NotFound />} />
