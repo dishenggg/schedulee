@@ -16,7 +16,6 @@ function AllTrips({
   trips,
   selectedDate,
   listOfTripsByDriver,
-  dateWithoutDashes,
   updateListOfTripsByDriver,
   driverDetails,
 }) {
@@ -49,7 +48,7 @@ function AllTrips({
           params={params}
           listOfDriverIds={listOfDriverIds}
           listOfTripsByDriver={listOfTripsByDriver}
-          dateWithoutDashes={dateWithoutDashes}
+          selectedDate={selectedDate}
           updateListOfTripsByDriver={updateListOfTripsByDriver}
           driverDetails={driverDetails}
         />
@@ -59,7 +58,7 @@ function AllTrips({
       driverDetails,
       listOfDriverIds,
       listOfTripsByDriver,
-      dateWithoutDashes,
+      selectedDate,
       updateListOfTripsByDriver,
     ]
   );
@@ -239,6 +238,7 @@ function AllTrips({
         cellRenderer: busCellRenderer,
         autoHeight: true,
         wrapText: true,
+        editable: false,
       },
       {
         headerName: "",
@@ -327,6 +327,7 @@ function AllTrips({
           isExternalFilterPresent={isExternalFilterPresent}
           doesExternalFilterPass={doesExternalFilterPass}
           getRowId={getRowId}
+          suppressCellFocus={true}
         />
       </div>
     </>

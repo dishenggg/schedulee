@@ -12,14 +12,14 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import {
-  parseDateTimeFromStringToFireStore,
+  parseDateTimeStringToDatetime,
   ParseTimeFromFirestore,
 } from "../../utils/ParseTime";
 const BusCellRenderer = ({
   params,
   listOfDriverIds,
   listOfTripsByDriver,
-  dateWithoutDashes,
+  selectedDate,
   updateListOfTripsByDriver,
   driverDetails,
 }) => {
@@ -37,13 +37,13 @@ const BusCellRenderer = ({
     (data, driverId) => {
       if (driverId === unscheduledTrips) return false;
       // Check for timing clashes with existing trips
-      const newTripStartTime = parseDateTimeFromStringToFireStore(
+      const newTripStartTime = parseDateTimeStringToDatetime(
         ParseTimeFromFirestoreToString(data.startTime),
-        dateWithoutDashes
+        selectedDate
       );
-      const newTripEndTime = parseDateTimeFromStringToFireStore(
+      const newTripEndTime = parseDateTimeStringToDatetime(
         ParseTimeFromFirestoreToString(data.endTime),
-        dateWithoutDashes
+        selectedDate
       );
       for (const trip of listOfTripsByDriver[driverId] || []) {
         const tripStartTime = ParseTimeFromFirestore(trip.startTime).add(
@@ -62,7 +62,7 @@ const BusCellRenderer = ({
       }
       return false;
     },
-    [dateWithoutDashes, listOfTripsByDriver, unscheduledTrips]
+    [selectedDate, listOfTripsByDriver, unscheduledTrips]
   );
 
   const getOptions = useCallback(
@@ -119,7 +119,6 @@ const BusCellRenderer = ({
       if (selected.length > data.numBus)
         throw new Error("You cannot assign more buses than required");
       const id = data.id;
-      // const tripRef = doc(db, "Dates", dateWithoutDashes, "trips", id);
       const tripRef = doc(db, "Trips", id);
       await updateDoc(tripRef, {
         bus: selected,
