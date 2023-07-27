@@ -31,7 +31,6 @@ export function ParseTimeFromFirestoreToString(datetime) {
 }
 
 export function parseDateTimeStringToDatetime(timeString, dateString) {
-  console.log(dateString);
   const [d, m, y] = dateString.split("/");
   const date = dayjs(new Date(y, m - 1, d))
     .hour(parseInt(timeString.substring(0, 2)))
