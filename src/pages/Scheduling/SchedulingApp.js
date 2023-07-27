@@ -419,7 +419,7 @@ export default function SchedulingApp({
             suppressHorizontalScroll={true}
             onGridReady={(params) => onGridReady(params, driverId)}
             animateRows={true}
-            //getRowId={getRowId}
+            getRowId={getRowId}
             onRowDragEnter={onRowDragEnter}
             onRowDragEnd={onRowDragEnd}
             onDragStopped={onDragStopped}
