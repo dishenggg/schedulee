@@ -30,6 +30,22 @@ export function ParseTimeFromFirestoreToString(datetime) {
   return timeString;
 }
 
+export function FormatDateAndTime(datetime) {
+  const dateTime = dayjs.unix(datetime.seconds);
+  const dateString = dateTime.format("DD/MM/YYYY");
+  const timeString = dateTime.format("HH:mm");
+  return `${dateString} ${timeString}`;
+}
+
+
+export function ParseStringToDateTime(datetimeString) {
+  // Parse the date and time string using the specified format
+  const dateTime = dayjs(datetimeString, "DD/MM/YYYY HH:mm");
+  // Convert dayjs object to JavaScript Date object
+  const dateObject = dateTime.toDate();
+  return dateObject;
+}
+
 export function parseDateTimeStringToDatetime(timeString, dateString) {
   console.log(dateString);
   const [d, m, y] = dateString.split("/");
