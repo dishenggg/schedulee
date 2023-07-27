@@ -60,14 +60,19 @@ export default function SchedulingApp({
   const compactListOfTripsBySubcon = useMemo(() => {
     const res = {};
     Object.keys(listOfTripsBySubCon).forEach((subCon) => {
-      subConTrips = {};
+      const subConTrips = {};
       listOfTripsBySubCon[subCon].forEach((trip) => {
         if (subConTrips.hasOwnProperty(trip.id)) {
-          subConTrips[trip.id] = { ...trip };
+          const { count, ...rest } = subConTrips[trip.id];
+          subConTrips[trip.id] = { count: count + 1, ...rest };
+        } else {
+          subConTrips[trip.id] = { ...trip, count: 1 };
         }
       });
+      res[subCon] = Object.values(subConTrips);
     });
-  }, listOfTripsBySubCon);
+    return res;
+  }, [listOfTripsBySubCon]);
 
   useEffect(() => {
     setScheduledTrips({ ...listOfTripsByDriver, ...listOfTripsBySubCon });
@@ -298,11 +303,16 @@ export default function SchedulingApp({
           ...cols,
           {
             headerName: "",
-            flex: 7,
+            flex: 5,
             cellRenderer: unassignCellRenderer,
             cellRendererParams: {
               driverId: driverId,
             },
+          },
+          {
+            headerName: "count",
+            field: "count",
+            flex: 1,
           },
         ];
       } else {
@@ -462,14 +472,14 @@ export default function SchedulingApp({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
             gap: "10px",
             marginBottom: "50px",
           }}
         >
-          {generateGrids(subCons, listOfTripsBySubCon, {
+          {generateGrids(subCons, compactListOfTripsBySubcon, {
             height: "400px",
-            width: "400px",
+            width: "500px",
             margin: "10px 0px 30px 00px",
           })}
         </div>
@@ -479,13 +489,13 @@ export default function SchedulingApp({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
             gap: "10px",
           }}
         >
           {generateGrids(drivers, listOfTripsByDriver, {
             height: "400px",
-            width: "400px",
+            width: "500px",
             margin: "10px 0px 30px 0px",
           })}
         </div>
