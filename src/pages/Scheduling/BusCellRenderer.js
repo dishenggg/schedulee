@@ -36,6 +36,7 @@ const BusCellRenderer = ({
   const checkTimeClash = useCallback(
     (data, driverId) => {
       if (driverId === unscheduledTrips) return false;
+      if (listOfTripsByDriver[driverId] === undefined) return false;
       // Check for timing clashes with existing trips
       const newTripStartTime = parseDateTimeStringToDatetime(
         ParseTimeFromFirestoreToString(data.startTime),
@@ -45,7 +46,7 @@ const BusCellRenderer = ({
         ParseTimeFromFirestoreToString(data.endTime),
         selectedDate
       );
-      for (const trip of listOfTripsByDriver[driverId] || []) {
+      for (const trip of listOfTripsByDriver[driverId]) {
         const tripStartTime = ParseTimeFromFirestore(trip.startTime).add(
           -15,
           "minute"
@@ -66,7 +67,7 @@ const BusCellRenderer = ({
   );
 
   const getOptions = useCallback(
-    (params, listOfDriverIds, driverDetails) => {
+    (params, listOfDriverIds, driverDetails, currentOptions) => {
       const res = Object.values(listOfDriverIds).filter((driver) => {
         const driverId = driver.value;
         if (driverId === unscheduledTrips) {
@@ -83,22 +84,23 @@ const BusCellRenderer = ({
         }
         return !checkTimeClash(rowData, driverId); // Display grid if there are no clashes or bus size issues
       });
-      if (JSON.stringify(res) !== JSON.stringify(options)) {
+
+      if (JSON.stringify(res) !== JSON.stringify(currentOptions)) {
         setOptions(res);
       }
     },
-    [checkTimeClash, unscheduledTrips]
+    [checkTimeClash, unscheduledTrips, options]
   );
 
   useEffect(() => {
-    getOptions(params, listOfDriverIds, driverDetails);
-  }, [listOfDriverIds, driverDetails, getOptions]);
+    getOptions(params, listOfDriverIds, driverDetails, options);
+  }, [listOfDriverIds, driverDetails, getOptions, options]);
 
   // const handleChange = (value) => {
   //     setChanged(true);
   //     setSelected(value);
   // };
-  const handleChange = (value) => {
+  const handleChange = useCallback((value) => {
     const data = params.node.data;
     const requiredBuses = data.numBus; // Number of buses required for this trip
     const numBusesAssigned = value.length; // Number of buses currently assigned
@@ -109,7 +111,7 @@ const BusCellRenderer = ({
       setChanged(true);
       setSelected(value);
     }
-  };
+  }, []);
 
   const onBlur = async (e) => {
     if (!changed) return;
