@@ -139,15 +139,24 @@ const BusCellRenderer = ({
   const onDeselect = async (value) => {
     if (dropDownOpen) return;
 
+    const removeFromArr = (array, item) => {
+      var index = array.indexOf(item);
+      if (index !== -1) {
+        array.splice(index, 1);
+      }
+    };
+
     try {
       const data = params.node.data;
       const id = data.id;
       const tripRef = doc(db, "Trips", id);
       await runTransaction(db, async (transaction) => {
         const docSnapshot = await transaction.get(tripRef);
+        const busArr = docSnapshot.data().bus;
+        removeFromArr(busArr, value);
         transaction.update(docSnapshot.ref, {
-          bus: arrayRemove(value),
-          numBusAssigned: docSnapshot.data().numBusAssigned - 1,
+          bus: busArr,
+          numBusAssigned: busArr.length,
         });
       });
       message.success("Successfully Updated Buses");
