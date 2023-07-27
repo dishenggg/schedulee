@@ -12,7 +12,7 @@ import {
 import { Title } from "../../components/Typography/Title";
 import {
   ParseTimeFromFirestoreToString,
-  parseDateTimeFromStringToFireStore,
+  parseDateTimeStringToDatetime,
   ParseTimeFromFirestore,
 } from "../../utils/ParseTime";
 import { Button, message } from "antd";
@@ -86,11 +86,11 @@ export default function SchedulingApp({
     (data, driverId) => {
       if (subConSet.has(driverId)) return false;
       // Check for timing clashes with existing trips
-      const newTripStartTime = parseDateTimeFromStringToFireStore(
+      const newTripStartTime = parseDateTimeStringToDatetime(
         data.startTime,
         selectedDate
       );
-      const newTripEndTime = parseDateTimeFromStringToFireStore(
+      const newTripEndTime = parseDateTimeStringToDatetime(
         data.endTime,
         selectedDate
       );

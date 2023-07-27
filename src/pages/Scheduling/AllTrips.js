@@ -16,7 +16,6 @@ function AllTrips({
   trips,
   selectedDate,
   listOfTripsByDriver,
-  dateWithoutDashes,
   updateListOfTripsByDriver,
   driverDetails,
 }) {
@@ -49,7 +48,7 @@ function AllTrips({
           params={params}
           listOfDriverIds={listOfDriverIds}
           listOfTripsByDriver={listOfTripsByDriver}
-          dateWithoutDashes={dateWithoutDashes}
+          selectedDate={selectedDate}
           updateListOfTripsByDriver={updateListOfTripsByDriver}
           driverDetails={driverDetails}
         />
@@ -59,7 +58,7 @@ function AllTrips({
       driverDetails,
       listOfDriverIds,
       listOfTripsByDriver,
-      dateWithoutDashes,
+      selectedDate,
       updateListOfTripsByDriver,
     ]
   );
