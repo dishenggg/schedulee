@@ -4,8 +4,6 @@ import { SendOutlined } from "@ant-design/icons";
 import { Title } from "../../components/Typography/Title";
 import { db } from "../../firebase.js";
 import { doc, getDoc } from "firebase/firestore";
-const docRef = doc(db, "test_data", "eXzhx4lKoZYBo7C2Wq9g");
-const docSnap = await getDoc(docRef);
 
 const Salary = () => {
   return (
